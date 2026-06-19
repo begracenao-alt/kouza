@@ -153,10 +153,11 @@
   .input:focus, .textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
   .textarea { resize: vertical; min-height: 60px; line-height: 1.6; }
   .title-input {
-    font-size: 24px; font-weight: 700; border: none; background: transparent;
-    width: 100%; padding: 4px 0; color: var(--ink);
+    font-size: 18px; font-weight: 700; border: 1px solid var(--line,#dcdcdc); background: #fff;
+    width: 100%; padding: 11px 13px; color: var(--ink); border-radius: 10px;
   }
-  .title-input:focus { outline: none; border-bottom: 2px solid var(--accent); }
+  .title-input::placeholder { font-weight: 400; color: var(--muted,#999); }
+  .title-input:focus { outline: none; border-color: var(--accent); }
 
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
@@ -876,7 +877,8 @@ function buildSlideText() {
     m += `== ${stripDur(s.title)} ==\n\n`;
     s.lessons.forEach((l) => {
       m += `# ${stripDur(l.title)}\n`;
-      const lines = (l.slides || "").split(/\n+/).map(x => stripDur(x.replace(/^[・\-\*\s]+/, "").trim())).filter(Boolean);
+      var timeOnly = /^(所要時間|目安|時間|尺|長さ|時間目安)?\s*[:：]?\s*(約|およそ)?\s*\d+\s*[〜~\-‐]?\s*\d*\s*分(間)?$/;
+      const lines = (l.slides || "").split(/\n+/).map(x => x.replace(/^[・\-\*\s]+/, "").trim()).filter(Boolean).filter(x => !timeOnly.test(x)).map(stripDur).filter(Boolean);
       if (lines.length) lines.forEach(x => m += `- ${x}\n`);
       else m += `- （スライド見出しは未記入）\n`;
       m += `\n`;
