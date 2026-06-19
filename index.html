@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>講座ビルダー</title>
+<style>
+  :root {
+    --bg: #f8f1f4;
+    --panel: #ffffff;
+    --ink: #3f3343;
+    --muted: #8a7c8d;
+    --line: #f0dde3;
+    --accent: #f291b3;
+    --accent-soft: #fcdfe9;
+    --danger: #ec6f95;
+    --ok: #6fa57f;
+    --radius: 16px;
+    --shadow: 0 2px 8px rgba(63,51,67,.05), 0 10px 30px rgba(63,51,67,.07);
+    --brand-ink: #ffffff;
+    --cover-ink: #c2547d;
+    --line: #f7dde6;
+    --app-bg-grad: linear-gradient(160deg,#fffefe,#fdf4f7);
+    --brand-grad: linear-gradient(135deg,#fbcad9,#f59cb9 60%,#f291b3);
+    --btn-grad: linear-gradient(135deg,#f8b3c9,#f08aae);
+    --grad-cover: linear-gradient(135deg,#fff7fa,#fcd3e0 55%,#f7b3cb);
+    --grad-divider: linear-gradient(135deg,#fff,#fde6ee 78%,#fcdfe9);
+    --grad-content: linear-gradient(160deg,#fff,#fff5f8);
+  }
+  /* テーマカラー切り替え（マネーアプリ風・白ベースで上品） */
+  body[data-theme="lavender"] { --accent:#b89ed6; --accent-soft:#e4d8f2; --line:#e7defa; --muted:#8a7c8d; --ink:#3a3343; --brand-ink:#fff; --cover-ink:#4a3a5a;
+    --app-bg-grad:linear-gradient(160deg,#fffdff,#f3ecf8); --brand-grad:linear-gradient(135deg,#d4c2ec,#b89ed6 60%,#a98ccb);
+    --btn-grad:linear-gradient(135deg,#c6b0e3,#b294d0); --grad-cover:linear-gradient(135deg,#faf6fd,#e4d8f2 55%,#cdbce8);
+    --grad-divider:linear-gradient(135deg,#fff,#efe7f8 75%,#e4d8f2); --grad-content:linear-gradient(160deg,#fff,#faf6fd); }
+  body[data-theme="sky"] { --accent:#7aa7d8; --accent-soft:#e4effb; --line:#dbeafc; --muted:#8aa0bd; --ink:#33405a; --brand-ink:#fff; --cover-ink:#33507a;
+    --app-bg-grad:linear-gradient(160deg,#fcfdff,#eef4fc); --brand-grad:linear-gradient(135deg,#a7cbf0,#7aa7d8 60%,#5f93cf);
+    --btn-grad:linear-gradient(135deg,#92bbe6,#6fa0d6); --grad-cover:linear-gradient(135deg,#f6faff,#d6e6f8 55%,#aecdf0);
+    --grad-divider:linear-gradient(135deg,#fff,#eaf2fc 75%,#d6e6f8); --grad-content:linear-gradient(160deg,#fff,#f4f9ff); }
+  body[data-theme="mint"] { --accent:#9cc4a6; --accent-soft:#dcefe0; --line:#dcefe0; --muted:#7e948a; --ink:#33433a; --brand-ink:#fff; --cover-ink:#3a5a48;
+    --app-bg-grad:linear-gradient(160deg,#fffefb,#eef5ef); --brand-grad:linear-gradient(135deg,#bcd9c2,#9cc4a6 60%,#6fa57f);
+    --btn-grad:linear-gradient(135deg,#a9cdb1,#83b591); --grad-cover:linear-gradient(135deg,#f6fbf7,#dcefe0 55%,#bfe0c8);
+    --grad-divider:linear-gradient(135deg,#fff,#e9f4ec 75%,#dcefe0); --grad-content:linear-gradient(160deg,#fff,#f5faf6); }
+  body[data-theme="gold"] { --accent:#c9a85f; --accent-soft:#f6ead0; --line:#f0e7d2; --muted:#a7976f; --ink:#4a4031; --brand-ink:#7a6233; --cover-ink:#7a6233;
+    --app-bg-grad:linear-gradient(160deg,#fffefa,#fdf7ea); --brand-grad:linear-gradient(135deg,#fffdf6,#f7ead0 60%,#ecd9a6);
+    --btn-grad:linear-gradient(135deg,#ecd49a,#caa85f); --grad-cover:linear-gradient(135deg,#fffefa,#f8ecca 60%,#eedba0);
+    --grad-divider:linear-gradient(135deg,#fff,#fbf3dc 78%,#f6ead0); --grad-content:linear-gradient(160deg,#fff,#fefaf0); }
+  body[data-theme="rosegold"] { --accent:#cf9885; --accent-soft:#f4e2d8; --line:#f1ddd0; --muted:#a98a7c; --ink:#4a3a34; --brand-ink:#fff; --cover-ink:#9c6650;
+    --app-bg-grad:linear-gradient(160deg,#fffefb,#fbf1ea); --brand-grad:linear-gradient(135deg,#f0cdbd,#dba892 60%,#cf9885);
+    --btn-grad:linear-gradient(135deg,#e6bca9,#cf9885); --grad-cover:linear-gradient(135deg,#fff8f4,#f3d6c8 55%,#e3b79e);
+    --grad-divider:linear-gradient(135deg,#fff,#f8e6dc 78%,#f3d6c8); --grad-content:linear-gradient(160deg,#fff,#fdf6f1); }
+  body[data-theme="silver"] { --accent:#9aa3ad; --accent-soft:#eef0f3; --line:#e6e8ec; --muted:#9aa1ab; --ink:#3a3f47; --brand-ink:#3a3f47; --cover-ink:#3a3f47;
+    --app-bg-grad:linear-gradient(160deg,#fdfdfe,#f2f4f6); --brand-grad:linear-gradient(135deg,#eef0f3,#cfd4da 55%,#b6bcc4);
+    --btn-grad:linear-gradient(135deg,#c2c8cf,#9aa3ad); --grad-cover:linear-gradient(135deg,#fbfcfd,#dfe3e8 50%,#f4f6f8 72%,#cdd3da);
+    --grad-divider:linear-gradient(135deg,#fff,#eef0f3 75%,#dfe3e8); --grad-content:linear-gradient(160deg,#fff,#f6f7f9); }
+  body[data-theme="chakra"] { --accent:#a87bd0; --accent-soft:#ece2f6; --line:#e7defa; --muted:#8a7c9d; --ink:#3a3343; --brand-ink:#fff; --cover-ink:#5a3f7a;
+    --app-bg-grad:linear-gradient(160deg,#fffdff,#f4eefb); --brand-grad:linear-gradient(120deg,#ea7a8a,#f4d97a 28%,#7fcf9b 52%,#6fb7e8 74%,#a87bd0);
+    --btn-grad:linear-gradient(135deg,#b98fde,#9a6cc8); --grad-cover:linear-gradient(135deg,#fdfbff,#f3ecf8 60%,#e7daf2);
+    --grad-divider:linear-gradient(135deg,#fff,#f0e9f9 75%,#e7daf2); --grad-content:linear-gradient(160deg,#fff,#faf6fd); }
+  /* チャクラ：表紙の丸を虹色オーラに */
+  body[data-theme="chakra"] .sld-stage.cover::before {
+    background: radial-gradient(circle at 38% 32%, #ffffff 0%, #c98bd6 18%, #7c8ae0 33%, #6fb7e8 47%, #7fcf9b 61%, #f4d97a 75%, #f2a96b 88%, #ea7a8a 100%);
+    opacity: .62;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Maru Gothic ProN", "Hiragino Sans", -apple-system, "Noto Sans JP", sans-serif;
+    background: var(--app-bg-grad);
+    background-attachment: fixed;
+    color: var(--ink);
+    line-height: 1.7;
+  }
+  button { font-family: inherit; cursor: pointer; }
+  input, textarea { font-family: inherit; }
+
+  .app { display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    background: var(--panel);
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+  .brand {
+    padding: 20px 20px;
+    background: var(--brand-grad);
+    color: var(--brand-ink);
+  }
+  .brand h1 { font-size: 18px; margin: 0; letter-spacing: .03em; font-weight: 800; }
+  .brand p { margin: 3px 0 0; font-size: 12px; color: var(--brand-ink); opacity: .82; }
+  .course-list { flex: 1; overflow-y: auto; padding: 10px; }
+  .course-item {
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 4px;
+    border: 1px solid transparent;
+  }
+  .course-item:hover { background: var(--bg); }
+  .course-item.active { background: var(--accent-soft); border-color: var(--accent); }
+  .course-item .ci-title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .course-item .ci-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .sidebar-foot { padding: 12px; border-top: 1px solid var(--line); }
+
+  .btn {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    transition: .12s;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-primary { background: var(--btn-grad); color: #fff; border-color: transparent; box-shadow: 0 2px 8px rgba(0,0,0,.12); filter: saturate(1); }
+  .btn-primary:hover { background: var(--btn-grad); color: #fff; filter: brightness(.96); }
+  .btn-block { width: 100%; }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-ghost { border-color: transparent; background: transparent; color: var(--muted); }
+  .btn-ghost:hover { color: var(--danger); border-color: transparent; }
+
+  /* Main */
+  .main { flex: 1; overflow-y: auto; height: 100vh; }
+  .main-inner { max-width: 860px; margin: 0 auto; padding: 32px 28px 120px; }
+
+  .topbar { display: flex; gap: 8px; align-items: center; margin-bottom: 24px; flex-wrap: wrap; }
+  .topbar .spacer { flex: 1; }
+
+  .empty {
+    text-align: center;
+    color: var(--muted);
+    margin-top: 18vh;
+  }
+  .empty h2 { color: var(--ink); font-weight: 600; }
+
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 5px; letter-spacing: .03em; }
+  .input, .textarea {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 9px 11px;
+    font-size: 14px;
+    background: var(--panel);
+    color: var(--ink);
+  }
+  .input:focus, .textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .textarea { resize: vertical; min-height: 60px; line-height: 1.6; }
+  .title-input {
+    font-size: 24px; font-weight: 700; border: none; background: transparent;
+    width: 100%; padding: 4px 0; color: var(--ink);
+  }
+  .title-input:focus { outline: none; border-bottom: 2px solid var(--accent); }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .section-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .section-no {
+    background: var(--accent-soft); color: var(--accent);
+    font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 20px;
+    white-space: nowrap;
+  }
+  .section-title-input {
+    flex: 1; font-size: 17px; font-weight: 700; border: none; background: transparent; padding: 4px 0; color: var(--ink);
+  }
+  .section-title-input:focus { outline: none; border-bottom: 1px solid var(--accent); }
+
+  .lesson {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-top: 10px;
+    overflow: hidden;
+  }
+  .lesson-head {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 12px; background: var(--bg); cursor: pointer;
+  }
+  .lesson-head .lz-no { font-size: 11px; color: var(--muted); font-weight: 700; white-space: nowrap; }
+  .lesson-title-input { flex: 1; border: none; background: transparent; font-size: 14px; font-weight: 600; color: var(--ink); }
+  .lesson-title-input:focus { outline: none; }
+  .lesson-body { padding: 14px; display: none; border-top: 1px solid var(--line); }
+  .lesson.open .lesson-body { display: block; }
+  .chev { transition: .15s; color: var(--muted); font-size: 12px; }
+  .lesson.open .chev { transform: rotate(90deg); }
+  .lz-dur { font-size: 11px; color: var(--muted); }
+
+  .hint { font-size: 11px; color: var(--muted); margin: 0 0 4px; }
+
+  .sec-actions { margin-top: 12px; display: flex; gap: 8px; }
+  h3.block-label { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin: 26px 0 10px; }
+
+  .modal-bg {
+    position: fixed; inset: 0; background: rgba(20,25,40,.45);
+    display: none; align-items: center; justify-content: center; z-index: 50;
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: var(--panel); border-radius: 12px; width: 92%; max-width: 720px;
+    max-height: 84vh; overflow: auto; padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,.3);
+  }
+  .modal h2 { margin-top: 0; }
+  pre.export {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+    padding: 16px; font-size: 12.5px; white-space: pre-wrap; word-break: break-word;
+    font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; line-height: 1.5; max-height: 50vh; overflow: auto;
+  }
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 8px;
+    font-size: 13px; opacity: 0; transition: .25s; pointer-events: none; z-index: 60;
+  }
+  .toast.show { opacity: 1; bottom: 32px; }
+  .stat-row { display: flex; gap: 18px; color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .row-flex { display: flex; gap: 8px; align-items: center; }
+
+  /* Teleprompter (読み上げモード) */
+  .tp {
+    position: fixed; inset: 0; background: #0b0e16; color: #f3f5fa;
+    display: none; flex-direction: column; z-index: 100;
+  }
+  .tp.show { display: flex; }
+  .tp-bar {
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    padding: 10px 16px; background: #141926; border-bottom: 1px solid #232a3a;
+  }
+  .tp-bar .tp-title { font-size: 14px; color: #aeb6c8; margin-right: auto; }
+  .tp-btn {
+    background: #232a3a; color: #f3f5fa; border: 1px solid #313a4f;
+    border-radius: 8px; padding: 8px 14px; font-size: 14px; cursor: pointer;
+  }
+  .tp-btn:hover { background: #2d3650; }
+  .tp-btn.primary { background: var(--accent); border-color: var(--accent); }
+  .tp-scroll { flex: 1; overflow-y: auto; scroll-behavior: auto; }
+  .tp-inner { max-width: 900px; margin: 0 auto; padding: 40vh 32px 60vh; }
+  .tp-inner h2 { font-size: 1.6em; color: var(--accent); margin: 1.4em 0 .3em; }
+  .tp-inner h3 { font-size: 1.25em; color: #ffd98a; margin: 1.1em 0 .2em; }
+  .tp-inner .tp-tag { font-size: .55em; color: #8a93a8; letter-spacing: .1em; }
+  .tp-inner p { white-space: pre-wrap; margin: .4em 0 1em; }
+  .tp-inner { font-size: 34px; line-height: 1.7; }
+
+  /* feminine touches */
+  .btn { border-radius: 12px; }
+  .input, .textarea { border-radius: 12px; }
+  .course-item { border-radius: 12px; }
+  .course-item.active { background: var(--accent-soft); border-color: var(--accent); }
+  .section-no { background: var(--accent-soft); color: var(--accent); }
+  .brand h1::before { content: "🌸 "; }
+  .tpl-pick { transition: .15s; }
+  .tpl-pick:hover { border-color: var(--accent); box-shadow: 0 6px 18px rgba(224,122,163,.18); transform: translateY(-1px); }
+  ::selection { background: #fbd3e2; }
+  .main-inner::-webkit-scrollbar, .course-list::-webkit-scrollbar { width: 10px; }
+  .course-list::-webkit-scrollbar-thumb { background: #f3d3e0; border-radius: 10px; }
+
+  /* スライド表示（アプリ内で自動生成） */
+  .sld { position: fixed; inset: 0; display: none; flex-direction: column; z-index: 120; background: #fff; }
+  .sld.show { display: flex; }
+  .sld-stage { flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 6vh 8vw; position: relative; overflow: hidden; cursor: pointer; }
+  .sld-slide { max-width: 1000px; width: 100%; position: relative; z-index: 1; }
+  .sld-stage.divider::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    background: radial-gradient(120% 80% at 25% 12%, rgba(255,255,255,.28), rgba(255,255,255,0) 55%);
+  }
+  /* 表紙：ラメ（きらめく粒） */
+  .sld-stage.cover::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(circle at 12% 22%, rgba(255,255,255,.95) 0, transparent 1.4px),
+      radial-gradient(circle at 27% 64%, rgba(255,255,255,.75) 0, transparent 1.1px),
+      radial-gradient(circle at 44% 17%, rgba(255,255,255,.9) 0, transparent 1.5px),
+      radial-gradient(circle at 57% 80%, rgba(255,255,255,.7) 0, transparent 1px),
+      radial-gradient(circle at 71% 33%, rgba(255,255,255,.95) 0, transparent 1.4px),
+      radial-gradient(circle at 83% 58%, rgba(255,255,255,.78) 0, transparent 1.1px),
+      radial-gradient(circle at 35% 41%, rgba(255,255,255,.65) 0, transparent .9px),
+      radial-gradient(circle at 90% 16%, rgba(255,255,255,.85) 0, transparent 1.2px),
+      radial-gradient(circle at 18% 86%, rgba(255,255,255,.7) 0, transparent 1px),
+      radial-gradient(circle at 64% 11%, rgba(255,255,255,.7) 0, transparent 1px),
+      radial-gradient(circle at 49% 55%, rgba(255,255,255,.7) 0, transparent 1px),
+      radial-gradient(circle at 78% 88%, rgba(255,255,255,.7) 0, transparent 1px),
+      radial-gradient(130% 90% at 25% 10%, rgba(255,255,255,.26), rgba(255,255,255,0) 55%);
+    background-repeat: no-repeat;
+    animation: twinkle 3.6s ease-in-out infinite;
+  }
+  /* 表紙：ふんわり光る丸（オーブ） */
+  .sld-stage.cover::before {
+    content: ""; position: absolute; left: 50%; top: 45%;
+    width: min(64vh, 600px); height: min(64vh, 600px); border-radius: 50%;
+    transform: translate(-50%,-50%); pointer-events: none; z-index: 0;
+    background: radial-gradient(circle at 38% 32%, #ffffff 0%, #fff 14%, var(--accent-soft) 46%, var(--accent) 100%);
+    filter: blur(10px); opacity: .5;
+    box-shadow: 0 0 90px 24px rgba(255,255,255,.4);
+    animation: breathe 6.5s ease-in-out infinite;
+  }
+  @keyframes twinkle { 0%,100% { opacity:.3 } 50% { opacity:.62 } }
+  @keyframes breathe { 0%,100% { transform: translate(-50%,-50%) scale(1); opacity:.45 } 50% { transform: translate(-50%,-50%) scale(1.06); opacity:.6 } }
+  .sld-kicker { font-size: clamp(13px,1.8vw,20px); letter-spacing: .28em; color: var(--accent); font-weight: 700; margin-bottom: 22px; }
+  .sld-title { font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif; font-size: clamp(30px,5.2vw,60px); font-weight: 600; line-height: 1.4; letter-spacing: .04em; color: var(--ink); }
+  .sld-stage.cover .sld-title::after, .sld-stage.divider .sld-title::after {
+    content: ""; display: block; width: 60px; height: 1.5px; margin: 26px auto 0; background: currentColor; opacity: .45;
+  }
+  .sld-sub { font-size: clamp(15px,2.2vw,24px); color: var(--muted); margin-top: 22px; letter-spacing: .04em; }
+  .sld-bullets { list-style: none; padding: 0; margin: 32px auto 0; max-width: 820px; text-align: left; display: inline-block; }
+  .sld-bullets li { font-size: clamp(18px,2.6vw,29px); color: var(--ink); margin: 18px 0; padding-left: 34px; position: relative; letter-spacing: .02em; }
+  .sld-bullets li::before { content: "◆"; position: absolute; left: 0; color: var(--accent); font-size: .72em; top: .18em; }
+  .sld-stage.cover { background: var(--grad-cover); }
+  .sld-stage.cover .sld-title, .sld-stage.cover .sld-sub { color: var(--cover-ink); }
+  .sld-stage.cover .sld-kicker { color: var(--cover-ink); opacity: .92; }
+  .sld-stage.divider { background: var(--grad-divider); }
+  .sld-stage.content { background: var(--grad-content); }
+  .sld-bar { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #fff; border-top: 1px solid var(--line); }
+  .sld-nav { background: var(--accent-soft); color: var(--accent); border: none; border-radius: 10px; width: 46px; height: 40px; font-size: 18px; cursor: pointer; }
+  .sld-nav:hover { background: #fbd3e2; }
+  .sld-count { font-size: 13px; color: var(--muted); min-width: 64px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <h1>講座ビルダー</h1>
+      <p>あなたの講座を、やさしく組み立てる</p>
+    </div>
+    <div class="course-list" id="courseList"></div>
+    <div class="sidebar-foot">
+      <button class="btn btn-primary btn-block" style="font-size:14px;padding:11px" onclick="openAI()">✨ AIで台本を作る</button>
+      <button class="btn btn-block" style="margin-top:8px" onclick="openTpl()">📐 型から作る</button>
+      <button class="btn btn-block" style="margin-top:8px" onclick="newCourse()">＋ 空の講座を作る</button>
+      <details style="margin-top:8px">
+        <summary style="font-size:12px;color:var(--muted);cursor:pointer;list-style:none">その他の取り込み ▾</summary>
+        <button class="btn btn-block btn-sm" style="margin-top:6px" onclick="pickFile()">📂 ファイルから取り込む</button>
+        <button class="btn btn-block btn-sm" style="margin-top:6px" onclick="openImport()">📥 JSONを貼り付けて取り込む</button>
+      </details>
+      <input type="file" id="fileInput" accept=".json,.txt" style="display:none" onchange="importFromFile(event)">
+      <div class="row-flex" style="margin-top:12px;gap:6px">
+        <span class="hint" style="white-space:nowrap">🎨 テーマ色</span>
+        <select id="themeSel" class="input" style="padding:5px 8px;font-size:12px" onchange="setTheme(this.value)">
+          <option value="rose">🌸 ローズ</option>
+          <option value="lavender">💜 ラベンダー</option>
+          <option value="sky">💙 スカイ</option>
+          <option value="mint">🌿 ミント</option>
+          <option value="gold">🥂 シャンパンゴールド</option>
+          <option value="rosegold">🌹 ローズゴールド</option>
+          <option value="silver">🤍 シルバー</option>
+          <option value="chakra">🌈 チャクラ</option>
+        </select>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="main-inner" id="main"></div>
+  </main>
+</div>
+
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="row-flex" style="justify-content:space-between">
+      <h2 id="modalTitle">エクスポート</h2>
+      <button class="btn btn-sm" onclick="closeModal()">閉じる</button>
+    </div>
+    <div class="row-flex" style="margin:6px 0 8px;gap:6px">
+      <span class="hint" style="margin-right:4px">表示：</span>
+      <button class="btn btn-sm btn-primary" id="viewScriptBtn" onclick="showExportView('script')">📄 台本</button>
+      <button class="btn btn-sm" id="viewSlidesBtn" onclick="showExportView('slides')">🖼 スライド用</button>
+    </div>
+    <p class="hint" id="exportHint" style="margin:0 0 12px"></p>
+    <div class="row-flex" style="margin:0 0 14px">
+      <button class="btn btn-sm btn-primary" onclick="copyExport()">📋 コピー</button>
+      <button class="btn btn-sm" onclick="downloadExport()">⬇ ダウンロード</button>
+      <button class="btn btn-sm" onclick="downloadJSON()">💾 バックアップ(JSON)</button>
+    </div>
+    <pre class="export" id="exportText"></pre>
+  </div>
+</div>
+
+<div class="modal-bg" id="importBg" onclick="if(event.target===this)closeImport()">
+  <div class="modal">
+    <div class="row-flex" style="justify-content:space-between">
+      <h2>📥 ChatGPTから取り込む</h2>
+      <button class="btn btn-sm" onclick="closeImport()">閉じる</button>
+    </div>
+    <p class="hint" style="font-size:13px;margin:6px 0 12px">
+      ChatGPTが出した「講座データ（JSON）」を下の枠に貼り付けて、取り込みボタンを押してください。<br>
+      新しい講座として左の一覧に追加されます。（今ある講座は消えません）
+    </p>
+    <textarea class="textarea" id="importText" style="min-height:220px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px" placeholder='ここに ChatGPT が出した { "title": ... } を貼り付け'></textarea>
+    <div class="row-flex" style="margin-top:12px">
+      <button class="btn btn-primary" onclick="doImport()">この内容を取り込む</button>
+      <span class="hint" id="importMsg"></span>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="aiBg" onclick="if(event.target===this)closeAI()">
+  <div class="modal">
+    <div class="row-flex" style="justify-content:space-between">
+      <h2 style="margin:0">✨ AIで台本を作る</h2>
+      <button class="btn btn-sm" onclick="closeAI()">閉じる</button>
+    </div>
+    <p class="hint" style="font-size:13px;margin:8px 0 16px">この画面だけで完結します。上から順にやればOKです。</p>
+
+    <!-- STEP 1 -->
+    <div class="card" style="margin-bottom:14px;box-shadow:none">
+      <div class="row-flex" style="gap:8px;margin-bottom:10px">
+        <span class="section-no">STEP 1</span>
+        <strong>どんな講座を作る？　メモを書く</strong>
+      </div>
+      <div class="field">
+        <label>種類をえらぶ</label>
+        <div class="row-flex" style="gap:14px">
+          <label class="row-flex" style="gap:5px;font-weight:600;color:var(--ink);font-size:14px;cursor:pointer">
+            <input type="radio" name="aiType" value="front" checked> フロントセミナー（説明会）
+          </label>
+          <label class="row-flex" style="gap:5px;font-weight:600;color:var(--ink);font-size:14px;cursor:pointer">
+            <input type="radio" name="aiType" value="member"> 会員講座（ふつうの講座）
+          </label>
+        </div>
+      </div>
+      <div class="field">
+        <label>組み立て方（型）　<span style="font-weight:400;color:var(--muted)">※会員講座のときに効きます</span></label>
+        <select class="input" id="aiTpl">
+          <option value="auto">おまかせ（AIが決める）</option>
+          <option value="henyou">🦋 変容ストーリー型（Before→After）</option>
+          <option value="kadai">🧩 課題解決型（悩み→解決）</option>
+          <option value="tsumiage">🪜 積み上げ型（基礎→発展）</option>
+          <option value="project">🎨 プロジェクト型（作りながら学ぶ）</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>作り方をえらぶ</label>
+        <div class="row-flex" style="gap:14px;flex-wrap:wrap">
+          <label class="row-flex" style="gap:5px;font-weight:600;color:var(--ink);font-size:14px;cursor:pointer">
+            <input type="radio" name="aiStage" value="outline" checked> まず骨組みだけ作る（おすすめ）
+          </label>
+          <label class="row-flex" style="gap:5px;font-weight:600;color:var(--ink);font-size:14px;cursor:pointer">
+            <input type="radio" name="aiStage" value="full"> いっきに台本まで作る
+          </label>
+        </div>
+        <p class="hint" style="margin-top:4px">「骨組みだけ」→ 章とレッスンの並びを先に決めてから、あとで「✨AIで仕上げる」で台本を埋めると、いい講座になります。</p>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>材料（あなたのメモ・話した内容・箇条書き）</label>
+        <p class="hint">きれいじゃなくてOK。思いつくまま書いてください。AIが整えます。</p>
+        <textarea class="textarea" id="aiMaterial" style="min-height:140px" placeholder="例：&#10;Be Grace Methodという講座。整体と心のコーチングを合わせたもの。&#10;一生自分で自分を整えられるようになるのがゴール。&#10;3ステップある。料金はVIP58万、実践38万。…"></textarea>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="card" style="margin-bottom:14px;box-shadow:none">
+      <div class="row-flex" style="gap:8px;margin-bottom:10px">
+        <span class="section-no">STEP 2</span>
+        <strong>ChatGPTにお願いする</strong>
+      </div>
+      <p class="hint" style="margin-bottom:10px">下のボタンを押すと、指示とメモがまとめてコピーされます。あとはChatGPTに貼って送信するだけ。</p>
+      <div class="row-flex" style="gap:8px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="copyAIInstruction()">📋 ① 指示をコピー</button>
+        <a class="btn" href="https://chatgpt.com" target="_blank" rel="noopener">② ChatGPTを開いて貼る ↗</a>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="card" style="margin-bottom:0;box-shadow:none">
+      <div class="row-flex" style="gap:8px;margin-bottom:10px">
+        <span class="section-no">STEP 3</span>
+        <strong>ChatGPTの答えを貼る</strong>
+      </div>
+      <p class="hint" style="margin-bottom:10px">ChatGPTが出した答え（{ } だらけの文章）を、まるごとコピーして下に貼り、取り込みボタンを押す。</p>
+      <textarea class="textarea" id="aiAnswer" style="min-height:120px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px" placeholder="ここに ChatGPT の答えを貼り付け"></textarea>
+      <div class="row-flex" style="margin-top:12px">
+        <button class="btn btn-primary" onclick="importAIAnswer()">✅ ③ 取り込んで台本にする</button>
+        <span class="hint" id="aiMsg"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="courseAIBg" onclick="if(event.target===this)closeCourseAI()">
+  <div class="modal">
+    <div class="row-flex" style="justify-content:space-between">
+      <h2 style="margin:0">✨ AIで仕上げる</h2>
+      <button class="btn btn-sm" onclick="closeCourseAI()">閉じる</button>
+    </div>
+    <p class="hint" style="font-size:13px;margin:8px 0 14px">いま開いている講座を、AIに仕上げてもらいます。</p>
+    <div class="field">
+      <label>どうする？</label>
+      <div class="row-flex" style="gap:14px;flex-wrap:wrap">
+        <label class="row-flex" style="gap:5px;font-weight:600;color:var(--ink);font-size:14px;cursor:pointer">
+          <input type="radio" name="caiMode" value="fill" checked> 空いている台本を埋める
+        </label>
+        <label class="row-flex" style="gap:5px;font-weight:600;color:var(--ink);font-size:14px;cursor:pointer">
+          <input type="radio" name="caiMode" value="polish"> 全体を磨く（フックを強く・分かりやすく）
+        </label>
+      </div>
+    </div>
+    <div class="row-flex" style="gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      <button class="btn btn-primary" onclick="copyCourseAI()">📋 ① 指示をコピー</button>
+      <a class="btn" href="https://chatgpt.com" target="_blank" rel="noopener">② ChatGPTを開いて貼る ↗</a>
+    </div>
+    <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px">③ ChatGPTの答えを貼る</label>
+    <textarea class="textarea" id="caiAnswer" style="min-height:120px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px" placeholder="ここに ChatGPT の答えを貼り付け"></textarea>
+    <div class="row-flex" style="margin-top:12px">
+      <button class="btn btn-primary" onclick="applyCourseAI()">✅ ④ この講座に反映する</button>
+      <span class="hint" id="caiMsg"></span>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="tplBg" onclick="if(event.target===this)closeTpl()">
+  <div class="modal">
+    <div class="row-flex" style="justify-content:space-between">
+      <h2 style="margin:0">📐 型から作る</h2>
+      <button class="btn btn-sm" onclick="closeTpl()">閉じる</button>
+    </div>
+    <p class="hint" style="font-size:13px;margin:8px 0 14px">講座の「型」を選ぶと、章とレッスンの骨組みが一発で入ります。あとは「✨ AIで仕上げる」で台本を埋められます。</p>
+    <div class="card tpl-pick" style="cursor:pointer;margin-bottom:10px" onclick="applyTemplate('henyou')">
+      <strong>🦋 変容ストーリー型</strong>
+      <p class="hint" style="margin:4px 0 0">Before→Afterで「変われる」を見せる。コーチング・自己変革・美容系に最適。</p>
+    </div>
+    <div class="card tpl-pick" style="cursor:pointer;margin-bottom:10px" onclick="applyTemplate('kadai')">
+      <strong>🧩 課題解決型</strong>
+      <p class="hint" style="margin:4px 0 0">悩み→原因→解決の流れ。「○○の困りごとを解決」する講座に。</p>
+    </div>
+    <div class="card tpl-pick" style="cursor:pointer;margin-bottom:10px" onclick="applyTemplate('tsumiage')">
+      <strong>🪜 積み上げ型</strong>
+      <p class="hint" style="margin:4px 0 0">基礎→応用→発展と段階的に。スキル習得・体系的な学びに。</p>
+    </div>
+    <div class="card tpl-pick" style="cursor:pointer;margin-bottom:0" onclick="applyTemplate('project')">
+      <strong>🎨 プロジェクト型</strong>
+      <p class="hint" style="margin:4px 0 0">1つの作品・成果を完成させる流れ。「作りながら学ぶ」講座に。</p>
+    </div>
+  </div>
+</div>
+
+<div class="tp" id="tp">
+  <div class="tp-bar">
+    <span class="tp-title">▶ 読み上げモード（録画しながら読む用）</span>
+    <button class="tp-btn" onclick="tpSizeChange(-4)">文字 小</button>
+    <button class="tp-btn" onclick="tpSizeChange(4)">文字 大</button>
+    <button class="tp-btn" onclick="tpSpeedChange(-0.5)">遅く</button>
+    <span id="tpSpeedLabel" style="font-size:13px;color:#aeb6c8;min-width:54px;text-align:center">速さ 1.5</span>
+    <button class="tp-btn" onclick="tpSpeedChange(0.5)">速く</button>
+    <button class="tp-btn primary" id="tpPlayBtn" onclick="tpToggle()">▶ 再生</button>
+    <button class="tp-btn" onclick="closeTeleprompter()">閉じる</button>
+  </div>
+  <div class="tp-scroll" id="tpScroll" onclick="tpToggle()"><div class="tp-inner" id="tpInner"></div></div>
+</div>
+
+<div class="sld" id="sld">
+  <div class="sld-stage" id="sldStage" onclick="sldClickNav(event)">
+    <div class="sld-slide" id="sldSlide"></div>
+  </div>
+  <div class="sld-bar">
+    <button class="sld-nav" onclick="event.stopPropagation();sldGo(-1)">‹</button>
+    <span class="sld-count" id="sldCount"></span>
+    <button class="sld-nav" onclick="event.stopPropagation();sldGo(1)">›</button>
+    <span style="flex:1"></span>
+    <span class="hint" style="margin-right:6px">← → でめくれます</span>
+    <button class="btn btn-sm" onclick="sldFull()">⛶ 全画面</button>
+    <button class="btn btn-sm" onclick="closeSlides()">閉じる</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORE_KEY = "kouza-builder-v1";
+let state = { courses: [], currentId: null };
+
+/* ---------- persistence ---------- */
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) state = JSON.parse(raw);
+  } catch (e) {}
+  if (!state.courses) state.courses = [];
+}
+function save() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  renderSidebar();
+}
+function uid() { return Math.random().toString(36).slice(2, 9) + (state.courses.length); }
+
+/* ---------- model helpers ---------- */
+function current() { return state.courses.find(c => c.id === state.currentId); }
+
+function newCourse() {
+  const c = {
+    id: uid(),
+    title: "新しい講座",
+    audience: "",
+    goal: "",
+    duration: "",
+    sections: []
+  };
+  state.courses.unshift(c);
+  state.currentId = c.id;
+  save();
+  renderMain();
+}
+function deleteCourse(id) {
+  if (!confirm("この講座を削除します。よろしいですか？")) return;
+  state.courses = state.courses.filter(c => c.id !== id);
+  if (state.currentId === id) state.currentId = state.courses[0]?.id || null;
+  save();
+  renderMain();
+}
+function duplicateCourse(id) {
+  const src = state.courses.find(c => c.id === id);
+  if (!src) return;
+  const copy = JSON.parse(JSON.stringify(src));
+  copy.id = uid();
+  copy.title = src.title + "（コピー）";
+  reId(copy);
+  state.courses.unshift(copy);
+  state.currentId = copy.id;
+  save();
+  renderMain();
+}
+function reId(course) {
+  course.sections.forEach(s => { s.id = uid(); s.lessons.forEach(l => l.id = uid()); });
+}
+
+function addSection() {
+  current().sections.push({ id: uid(), title: "新しいセクション", lessons: [] });
+  save(); renderMain();
+}
+function delSection(sid) {
+  const c = current();
+  c.sections = c.sections.filter(s => s.id !== sid);
+  save(); renderMain();
+}
+function moveSection(sid, dir) {
+  const arr = current().sections;
+  const i = arr.findIndex(s => s.id === sid);
+  const j = i + dir;
+  if (j < 0 || j >= arr.length) return;
+  [arr[i], arr[j]] = [arr[j], arr[i]];
+  save(); renderMain();
+}
+function addLesson(sid) {
+  const s = current().sections.find(s => s.id === sid);
+  s.lessons.push({ id: uid(), title: "新しいレッスン", duration: "", hook: "", body: "", summary: "", slides: "", _open: true });
+  save(); renderMain();
+}
+function delLesson(sid, lid) {
+  const s = current().sections.find(s => s.id === sid);
+  s.lessons = s.lessons.filter(l => l.id !== lid);
+  save(); renderMain();
+}
+function moveLesson(sid, lid, dir) {
+  const arr = current().sections.find(s => s.id === sid).lessons;
+  const i = arr.findIndex(l => l.id === lid);
+  const j = i + dir;
+  if (j < 0 || j >= arr.length) return;
+  [arr[i], arr[j]] = [arr[j], arr[i]];
+  save(); renderMain();
+}
+
+/* ---------- generic field update ---------- */
+function setField(path, value) {
+  // path like ["title"] or ["sections", sid, "title"] or ["sections", sid, "lessons", lid, "hook"]
+  const c = current();
+  if (path.length === 1) { c[path[0]] = value; }
+  else if (path[0] === "sections") {
+    const s = c.sections.find(s => s.id === path[1]);
+    if (path.length === 3) s[path[2]] = value;
+    else { const l = s.lessons.find(l => l.id === path[3]); l[path[4]] = value; }
+  }
+  // save without full re-render to keep focus
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  renderSidebar();
+}
+
+/* ---------- rendering ---------- */
+function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+/* ---------- 話す時間の目安（文字数から自動計算：約300字＝1分） ---------- */
+const CHARS_PER_MIN = 300;
+function spokenChars(l){ return ((l.hook||"")+(l.body||"")+(l.summary||"")).replace(/\s/g,"").length; }
+function estLessonMin(l){ const n = spokenChars(l); return n ? n / CHARS_PER_MIN : 0; }
+function fmtMin(m){ if (m <= 0) return ""; if (m < 1) return "約1分未満"; return "約" + Math.round(m) + "分"; }
+function lessonTimeLabel(l){
+  const auto = fmtMin(estLessonMin(l));
+  const man = (l.duration || "").trim();
+  if (auto && man) return `🗣${auto}・目安${esc(man)}`;
+  if (auto) return `🗣${auto}`;
+  if (man) return esc(man);
+  return "";
+}
+function estCourseMin(c){ return c.sections.reduce((t,s)=>t + s.lessons.reduce((a,l)=>a + estLessonMin(l), 0), 0); }
+
+function renderSidebar() {
+  const list = document.getElementById("courseList");
+  if (!state.courses.length) {
+    list.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:10px;text-align:center">講座がまだありません</p>';
+    return;
+  }
+  list.innerHTML = state.courses.map(c => {
+    const lessons = c.sections.reduce((n, s) => n + s.lessons.length, 0);
+    return `<div class="course-item ${c.id===state.currentId?'active':''}" onclick="selectCourse('${c.id}')">
+      <div class="ci-title">${esc(c.title)||"（無題）"}</div>
+      <div class="ci-meta">${c.sections.length}セクション・${lessons}レッスン</div>
+    </div>`;
+  }).join("");
+}
+
+function selectCourse(id) { state.currentId = id; renderMain(); }
+
+function renderMain() {
+  renderSidebar();
+  const main = document.getElementById("main");
+  const c = current();
+  if (!c) {
+    main.innerHTML = `<div class="empty">
+      <h2>講座を作りましょう</h2>
+      <p>左下の「＋ 新しい講座」から始めてください。<br>テーマを変えていくつでも作れます。</p>
+    </div>`;
+    return;
+  }
+  const totalLessons = c.sections.reduce((n,s)=>n+s.lessons.length,0);
+
+  main.innerHTML = `
+    <div class="topbar">
+      <input class="title-input" value="${esc(c.title)}" placeholder="講座タイトル"
+        oninput="setField(['title'], this.value)">
+      <div class="spacer"></div>
+      <button class="btn btn-sm" onclick="openTeleprompter()">▶ 読み上げ</button>
+      <button class="btn btn-sm" onclick="openSlides()">🖼 スライド</button>
+      <button class="btn btn-sm" onclick="openCourseAI()">✨ AIで仕上げる</button>
+      <button class="btn btn-sm" onclick="duplicateCourse('${c.id}')">複製</button>
+      <button class="btn btn-sm btn-primary" onclick="openExport()">エクスポート</button>
+      <button class="btn btn-sm btn-ghost" onclick="deleteCourse('${c.id}')">削除</button>
+    </div>
+
+    <div class="card">
+      <div class="grid2">
+        <div class="field">
+          <label>対象者（誰のための講座か）</label>
+          <input class="input" value="${esc(c.audience)}" placeholder="例：プログラミング未経験の社会人"
+            oninput="setField(['audience'], this.value)">
+        </div>
+        <div class="field">
+          <label>想定の長さ・本数</label>
+          <input class="input" value="${esc(c.duration)}" placeholder="例：全10本・各8分前後"
+            oninput="setField(['duration'], this.value)">
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>ゴール（受講後にできるようになること）</label>
+        <textarea class="textarea" placeholder="例：簡単なWebアプリを自力で作れるようになる"
+          oninput="setField(['goal'], this.value)">${esc(c.goal)}</textarea>
+      </div>
+      <div class="stat-row">
+        <span>📦 ${c.sections.length} セクション</span>
+        <span>🎬 ${totalLessons} レッスン（動画）</span>
+        <span>⏱ 話す目安：合計 ${fmtMin(estCourseMin(c)) || "—"}</span>
+      </div>
+      <p class="hint" style="margin:6px 0 0">⏱は台本の文字数から自動計算（約300字＝1分）。実際の話す速さで前後します。</p>
+    </div>
+
+    <h3 class="block-label">カリキュラム</h3>
+    ${c.sections.map((s, si) => renderSection(s, si)).join("") || '<p class="hint">まだセクションがありません。下のボタンから追加してください。</p>'}
+
+    <button class="btn btn-block" style="margin-top:6px" onclick="addSection()">＋ セクションを追加</button>
+  `;
+}
+
+function renderSection(s, si) {
+  return `<div class="card">
+    <div class="section-head">
+      <span class="section-no">第${si+1}章</span>
+      <input class="section-title-input" value="${esc(s.title)}" placeholder="セクション名"
+        oninput="setField(['sections','${s.id}','title'], this.value)">
+      <button class="btn btn-sm btn-ghost" title="上へ" onclick="moveSection('${s.id}',-1)">↑</button>
+      <button class="btn btn-sm btn-ghost" title="下へ" onclick="moveSection('${s.id}',1)">↓</button>
+      <button class="btn btn-sm btn-ghost" onclick="delSection('${s.id}')">削除</button>
+    </div>
+    ${s.lessons.map((l, li) => renderLesson(s, l, si, li)).join("")}
+    <div class="sec-actions">
+      <button class="btn btn-sm" onclick="addLesson('${s.id}')">＋ レッスン（動画）を追加</button>
+    </div>
+  </div>`;
+}
+
+function renderLesson(s, l, si, li) {
+  return `<div class="lesson ${l._open?'open':''}">
+    <div class="lesson-head" onclick="toggleLesson('${s.id}','${l.id}')">
+      <span class="chev">▶</span>
+      <span class="lz-no">${si+1}-${li+1}</span>
+      <input class="lesson-title-input" value="${esc(l.title)}" placeholder="レッスンタイトル"
+        onclick="event.stopPropagation()" oninput="setField(['sections','${s.id}','lessons','${l.id}','title'], this.value)">
+      <span class="lz-dur">${lessonTimeLabel(l)}</span>
+      <button class="btn btn-sm btn-ghost" onclick="event.stopPropagation();moveLesson('${s.id}','${l.id}',-1)">↑</button>
+      <button class="btn btn-sm btn-ghost" onclick="event.stopPropagation();moveLesson('${s.id}','${l.id}',1)">↓</button>
+      <button class="btn btn-sm btn-ghost" onclick="event.stopPropagation();delLesson('${s.id}','${l.id}')">✕</button>
+    </div>
+    <div class="lesson-body">
+      <div class="field">
+        <label>尺の目安</label>
+        <input class="input" value="${esc(l.duration)}" placeholder="例：8分"
+          oninput="setField(['sections','${s.id}','lessons','${l.id}','duration'], this.value)">
+      </div>
+      <div class="field">
+        <label>① フック（冒頭・つかみ）</label>
+        <p class="hint">この動画で何が手に入るか／なぜ見る価値があるかを最初の15秒で。</p>
+        <textarea class="textarea" oninput="setField(['sections','${s.id}','lessons','${l.id}','hook'], this.value)">${esc(l.hook)}</textarea>
+      </div>
+      <div class="field">
+        <label>② 本編（台本・話す内容）</label>
+        <textarea class="textarea" style="min-height:120px" oninput="setField(['sections','${s.id}','lessons','${l.id}','body'], this.value)">${esc(l.body)}</textarea>
+      </div>
+      <div class="field">
+        <label>③ まとめ（締め・次への誘導）</label>
+        <textarea class="textarea" oninput="setField(['sections','${s.id}','lessons','${l.id}','summary'], this.value)">${esc(l.summary)}</textarea>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>スライド見出し（1行1枚）</label>
+        <p class="hint">画面に出すスライドの見出しを箇条書きで。撮影・編集の目印になります。</p>
+        <textarea class="textarea" placeholder="例：&#10;・本日のゴール&#10;・全体像の図&#10;・手順1: 環境構築" oninput="setField(['sections','${s.id}','lessons','${l.id}','slides'], this.value)">${esc(l.slides)}</textarea>
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleLesson(sid, lid) {
+  const l = current().sections.find(s=>s.id===sid).lessons.find(l=>l.id===lid);
+  l._open = !l._open;
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  renderMain();
+}
+
+/* ---------- export ---------- */
+function buildMarkdown() {
+  const c = current();
+  let m = `# ${c.title || "（無題の講座）"}\n\n`;
+  if (c.audience) m += `**対象者:** ${c.audience}\n\n`;
+  if (c.goal) m += `**ゴール:** ${c.goal}\n\n`;
+  if (c.duration) m += `**想定:** ${c.duration}\n\n`;
+  m += `---\n\n`;
+  c.sections.forEach((s, si) => {
+    m += `## 第${si+1}章　${s.title}\n\n`;
+    s.lessons.forEach((l, li) => {
+      m += `### ${si+1}-${li+1}　${l.title}${l.duration?`（${l.duration}）`:""}\n\n`;
+      if (l.hook) m += `**フック:**\n${l.hook}\n\n`;
+      if (l.body) m += `**本編:**\n${l.body}\n\n`;
+      if (l.summary) m += `**まとめ:**\n${l.summary}\n\n`;
+      if (l.slides) m += `**スライド:**\n${l.slides}\n\n`;
+    });
+  });
+  return m;
+}
+function buildSlideText() {
+  const c = current();
+  let m = `タイトル: ${c.title || "（無題の講座）"}\n`;
+  if (c.goal) m += `ゴール: ${c.goal}\n`;
+  m += `\n（このテキストを Googleスライドの「SlidesAI」/ Canva / Gamma などに貼ると、スライドが作れます）\n\n`;
+  c.sections.forEach((s) => {
+    m += `== ${s.title} ==\n\n`;
+    s.lessons.forEach((l) => {
+      m += `# ${l.title}\n`;
+      const lines = (l.slides || "").split(/\n+/).map(x => x.replace(/^[・\-\*\s]+/, "").trim()).filter(Boolean);
+      if (lines.length) lines.forEach(x => m += `- ${x}\n`);
+      else m += `- （スライド見出しは未記入）\n`;
+      m += `\n`;
+    });
+  });
+  return m;
+}
+let exportView = "script";
+function showExportView(v) {
+  exportView = v;
+  const el = document.getElementById("exportText");
+  el.textContent = (v === "slides") ? buildSlideText() : buildMarkdown();
+  const s = document.getElementById("viewScriptBtn"), sl = document.getElementById("viewSlidesBtn");
+  if (s && sl) { s.classList.toggle("btn-primary", v !== "slides"); sl.classList.toggle("btn-primary", v === "slides"); }
+  const hint = document.getElementById("exportHint");
+  if (hint) hint.textContent = (v === "slides")
+    ? "スライド用：この内容をコピーして、Googleスライドの SlidesAI や Canva に貼ってください。"
+    : "台本：録画しながら読む・印刷する用です。";
+}
+function openExport() {
+  document.getElementById("modalBg").classList.add("show");
+  showExportView("script");
+}
+function closeModal() { document.getElementById("modalBg").classList.remove("show"); }
+function copyExport() {
+  navigator.clipboard.writeText(document.getElementById("exportText").textContent)
+    .then(()=>toast("コピーしました"));
+}
+function downloadExport() {
+  const c = current();
+  const isSlides = (exportView === "slides");
+  const text = isSlides ? buildSlideText() : buildMarkdown();
+  const suffix = isSlides ? "_スライド用.txt" : ".md";
+  const blob = new Blob([text], {type:"text/plain"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = (c.title||"講座").replace(/[\\/:*?"<>|]/g,"_") + suffix;
+  a.click();
+  toast("ダウンロードしました");
+}
+
+function downloadJSON() {
+  const c = current();
+  const data = JSON.stringify(stripCourse(c), null, 2);
+  const blob = new Blob([data], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = (c.title||"講座").replace(/[\\/:*?"<>|]/g,"_") + ".json";
+  a.click();
+  toast("バックアップを保存しました");
+}
+function stripCourse(c) {
+  // export-friendly copy without internal ids / ui flags
+  return {
+    title: c.title, audience: c.audience, goal: c.goal, duration: c.duration,
+    sections: c.sections.map(s => ({
+      title: s.title,
+      lessons: s.lessons.map(l => ({
+        title: l.title, duration: l.duration, hook: l.hook, body: l.body, summary: l.summary, slides: l.slides
+      }))
+    }))
+  };
+}
+
+/* ---------- AI で台本を作る (この画面だけで完結) ---------- */
+const AI_PROMPTS = {
+  front: `あなたは、動画・オンライン講座の構成を設計するプロのインストラクショナルデザイナーです。
+これから渡す「材料（メモ・文字起こし・箇条書きなど）」を読み、フロントセミナー（説明会・体験会）の台本に組み立て直してください。
+
+### やること
+1. 材料の言い直し・口ぐせ・雑談・冗長な部分を取り除き、話し言葉として読みやすい台本に整える。
+2. 次の8つの流れ（各1レッスン）で構成する：
+   ① つかみ・自己紹介 ② 今日の約束 ③ 問題提起 ④ 価値提供 ⑤ 理想の未来 ⑥ 自力では難しい理由 ⑦ オファー ⑧ クロージング
+3. 各レッスンの台本を、次に振り分ける。
+   - hook：このパートの狙い（一言）
+   - body：実際に話す台本（整えた話し言葉で）
+   - summary：次のパートへのつなぎ
+   - slides：画面に出すスライド見出しの箇条書き（1行1枚）
+4. 材料に無い事実（価格・実績など）は勝手に創作しない。足りない所は「（ここに〇〇を入れる）」と空欄で示す。
+
+### 出力形式（重要）
+説明文や前置きは一切書かず、下のJSONだけを出力してください。
+
+{
+  "title": "セミナーのタイトル",
+  "audience": "想定される参加者",
+  "goal": "このセミナーのゴール（参加者にどうなってほしいか）",
+  "duration": "想定の長さ（例：全8パート・合計60分）",
+  "sections": [
+    { "title": "セミナー台本（8ブロック）", "lessons": [
+      { "title": "① つかみ・自己紹介", "duration": "3分", "hook": "このパートの狙い", "body": "話す台本", "summary": "次へのつなぎ", "slides": "・スライド見出し1\\n・スライド見出し2" }
+    ] }
+  ]
+}
+
+### 材料
+`,
+  member: `あなたは、動画・オンライン講座の構成を設計するプロのインストラクショナルデザイナーです。
+これから渡す「材料（メモ・文字起こし・箇条書きなど）」を読み、会員講座（体系的に学ぶ動画講座）の形に組み立て直してください。
+
+### やること
+1. 材料の言い直し・口ぐせ・雑談・冗長な部分を取り除き、講座向けの読みやすい文章に整える。
+2. 内容のまとまりごとに「セクション（章）」に分ける。
+3. 各セクションを、動画1本ぶんの「レッスン」に分ける（1レッスン＝5〜10分が目安）。
+4. 各レッスンの台本を、hook（冒頭のつかみ）／body（本編）／summary（まとめ）／slides（スライド見出しの箇条書き）に振り分ける。
+5. 材料に無い内容を勝手に創作しない。足りない所は「（ここに〇〇を入れる）」と空欄で示す。
+
+### 出力形式（重要）
+説明文や前置きは一切書かず、下のJSONだけを出力してください。
+
+{
+  "title": "講座のタイトル",
+  "audience": "想定される対象者",
+  "goal": "受講後にできるようになること",
+  "duration": "想定の本数・長さ（例：全6本・各8分前後）",
+  "sections": [
+    { "title": "セクション名", "lessons": [
+      { "title": "レッスンのタイトル", "duration": "8分", "hook": "冒頭のつかみ", "body": "本編の台本", "summary": "まとめ", "slides": "・スライド見出し1\\n・スライド見出し2" }
+    ] }
+  ]
+}
+
+### 材料
+`
+};
+function aiType() {
+  const el = document.querySelector('input[name="aiType"]:checked');
+  return el ? el.value : "front";
+}
+function openAI() {
+  document.getElementById("aiMsg").textContent = "";
+  document.getElementById("aiBg").classList.add("show");
+}
+function closeAI() { document.getElementById("aiBg").classList.remove("show"); }
+function aiStage() {
+  const el = document.querySelector('input[name="aiStage"]:checked');
+  return el ? el.value : "full";
+}
+function aiTpl() {
+  const e = document.getElementById("aiTpl");
+  return e ? e.value : "auto";
+}
+const FRAMEWORKS = {
+  henyou: "Before→Afterの変容ストーリーで構成する。「現在地（Before）→変化の地図（全体像）→実践で変わる→定着と未来（After）」の流れで章を作る。",
+  kadai: "課題解決の流れで構成する。「問題を正しく捉える→原因を見つける→解決策と手順→実践と確認」の流れで章を作る。",
+  tsumiage: "段階的に積み上げる構成にする。「基礎→応用→発展→仕上げ（総合演習）」の流れで章を作る。",
+  project: "1つの成果物を完成させる構成にする。「完成イメージとゴール→準備→作る（手順）→仕上げ・公開」の流れで章を作る。"
+};
+function copyAIInstruction() {
+  const material = document.getElementById("aiMaterial").value.trim();
+  if (!material) { toast("先に STEP1 でメモを書いてください"); return; }
+  let text = AI_PROMPTS[aiType()] + material + "\n\n上の材料を、指定したJSON形式に変換してください。";
+  if (aiType() === "member" && FRAMEWORKS[aiTpl()]) {
+    text += "\n\n### 講座の組み立て方（型）\n" + FRAMEWORKS[aiTpl()];
+  }
+  if (aiStage() === "outline") {
+    text += "\n\n【今回の特別ルール】今回は“骨組みだけ”を作ります。各レッスンの hook / body / summary / slides は空（\"\"）のままにし、章・レッスンのタイトルと duration、講座の title / audience / goal / duration だけを埋めてください。台本の中身はまだ書かないでください。";
+  }
+  navigator.clipboard.writeText(text)
+    .then(()=>toast("コピーしました。ChatGPTに貼り付けて送信してください"))
+    .catch(()=>toast("コピーできませんでした"));
+}
+function importAIAnswer() {
+  const raw = (document.getElementById("aiAnswer").value || "").trim();
+  const msg = document.getElementById("aiMsg");
+  if (!raw) { msg.style.color = "var(--danger)"; msg.textContent = "ChatGPTの答えを貼ってください。"; return; }
+  let obj;
+  try {
+    let txt = raw.replace(/```json/gi, "").replace(/```/g, "").trim();
+    const first = txt.indexOf("{"), last = txt.lastIndexOf("}");
+    if (first >= 0 && last > first) txt = txt.slice(first, last + 1);
+    obj = JSON.parse(txt);
+  } catch (e) {
+    msg.style.color = "var(--danger)";
+    msg.textContent = "読み取れませんでした。ChatGPTの答えを “まるごと全部” コピーし直して貼ってください。";
+    return;
+  }
+  const c = normalizeCourse(obj);
+  state.courses.unshift(c);
+  state.currentId = c.id;
+  save();
+  document.getElementById("aiMaterial").value = "";
+  document.getElementById("aiAnswer").value = "";
+  closeAI();
+  renderMain();
+  toast("台本ができました ✓");
+}
+
+/* ---------- 読み上げモード（テレプロンプター） ---------- */
+let tpTimer = null, tpSpeed = 1.5, tpSize = 34;
+function buildTeleprompterHTML() {
+  const c = current(); if (!c) return "";
+  let h = `<h2>${esc(c.title || "（無題の講座）")}</h2>`;
+  c.sections.forEach((s, si) => {
+    h += `<h2><span class="tp-tag">第${si+1}章</span><br>${esc(s.title)}</h2>`;
+    s.lessons.forEach((l, li) => {
+      h += `<h3>${si+1}-${li+1}　${esc(l.title)}${l.duration?`（${esc(l.duration)}）`:""}</h3>`;
+      if (l.hook) h += `<p><span class="tp-tag">つかみ</span><br>${esc(l.hook)}</p>`;
+      if (l.body) h += `<p>${esc(l.body)}</p>`;
+      if (l.summary) h += `<p><span class="tp-tag">まとめ</span><br>${esc(l.summary)}</p>`;
+    });
+  });
+  return h;
+}
+function openTeleprompter() {
+  const c = current(); if (!c) { toast("先に講座を選んでください"); return; }
+  const inner = document.getElementById("tpInner");
+  inner.innerHTML = buildTeleprompterHTML();
+  inner.style.fontSize = tpSize + "px";
+  document.getElementById("tpSpeedLabel").textContent = "速さ " + tpSpeed.toFixed(1);
+  document.getElementById("tpScroll").scrollTop = 0;
+  document.getElementById("tp").classList.add("show");
+  tpPause();
+}
+function closeTeleprompter() { tpPause(); document.getElementById("tp").classList.remove("show"); }
+function tpPlay() {
+  tpPause();
+  document.getElementById("tpPlayBtn").textContent = "⏸ 止める";
+  const sc = document.getElementById("tpScroll");
+  tpTimer = setInterval(() => {
+    sc.scrollTop += tpSpeed;
+    if (sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 1) tpPause();
+  }, 30);
+}
+function tpPause() {
+  if (tpTimer) { clearInterval(tpTimer); tpTimer = null; }
+  const b = document.getElementById("tpPlayBtn"); if (b) b.textContent = "▶ 再生";
+}
+function tpToggle() { tpTimer ? tpPause() : tpPlay(); }
+function tpSpeedChange(d) {
+  tpSpeed = Math.max(0.5, Math.min(8, Math.round((tpSpeed + d) * 10) / 10));
+  document.getElementById("tpSpeedLabel").textContent = "速さ " + tpSpeed.toFixed(1);
+}
+function tpSizeChange(d) {
+  tpSize = Math.max(20, Math.min(64, tpSize + d));
+  document.getElementById("tpInner").style.fontSize = tpSize + "px";
+}
+
+/* ---------- 🖼 スライド表示（アプリが自動生成・AI不要） ---------- */
+let sldList = [], sldIdx = 0;
+function buildSlides() {
+  const c = current(); const out = [];
+  out.push({ type: "cover", kicker: "", title: c.title || "（無題の講座）", sub: c.goal || "" });
+  c.sections.forEach((s, si) => {
+    out.push({ type: "divider", kicker: `第${si+1}章`, title: s.title });
+    s.lessons.forEach((l, li) => {
+      const lines = (l.slides || "").split(/\n+/).map(x => x.replace(/^[・\-\*\s]+/, "").trim()).filter(Boolean);
+      out.push({ type: "content", kicker: `${si+1}-${li+1}`, title: l.title, sub: l.duration || "", bullets: lines });
+    });
+  });
+  return out;
+}
+function renderSlide() {
+  const s = sldList[sldIdx]; if (!s) return;
+  const stage = document.getElementById("sldStage");
+  stage.className = "sld-stage " + (s.type === "cover" ? "cover" : s.type === "divider" ? "divider" : "content");
+  let h = "";
+  if (s.kicker) h += `<div class="sld-kicker">${esc(s.kicker)}</div>`;
+  h += `<div class="sld-title">${esc(s.title)}</div>`;
+  if (s.sub) h += `<div class="sld-sub">${esc(s.sub)}</div>`;
+  if (s.bullets && s.bullets.length) h += `<ul class="sld-bullets">` + s.bullets.map(b => `<li>${esc(b)}</li>`).join("") + `</ul>`;
+  document.getElementById("sldSlide").innerHTML = h;
+  document.getElementById("sldCount").textContent = `${sldIdx+1} / ${sldList.length}`;
+}
+function openSlides() {
+  const c = current(); if (!c) { toast("先に講座を選んでください"); return; }
+  sldList = buildSlides(); sldIdx = 0; renderSlide();
+  document.getElementById("sld").classList.add("show");
+  document.addEventListener("keydown", sldKey);
+}
+function closeSlides() {
+  document.getElementById("sld").classList.remove("show");
+  document.removeEventListener("keydown", sldKey);
+  if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+}
+function sldGo(d) { sldIdx = Math.max(0, Math.min(sldList.length-1, sldIdx + d)); renderSlide(); }
+function sldKey(e) {
+  if (e.key === "ArrowRight" || e.key === " ") { sldGo(1); e.preventDefault(); }
+  else if (e.key === "ArrowLeft") { sldGo(-1); }
+  else if (e.key === "Escape") { closeSlides(); }
+}
+function sldClickNav(e) {
+  const stage = document.getElementById("sldStage");
+  const x = e.clientX - stage.getBoundingClientRect().left;
+  sldGo(x < stage.clientWidth / 2 ? -1 : 1);
+}
+function sldFull() {
+  const el = document.getElementById("sld");
+  if (document.fullscreenElement) document.exitFullscreen();
+  else if (el.requestFullscreen) el.requestFullscreen().catch(()=>{});
+}
+
+/* ---------- ✨AIで仕上げる（埋める / 磨く） ---------- */
+function caiMode() {
+  const e = document.querySelector('input[name="caiMode"]:checked');
+  return e ? e.value : "fill";
+}
+function openCourseAI() {
+  if (!current()) { toast("先に講座を選んでください"); return; }
+  document.getElementById("caiMsg").textContent = "";
+  document.getElementById("courseAIBg").classList.add("show");
+}
+function closeCourseAI() { document.getElementById("courseAIBg").classList.remove("show"); }
+function copyCourseAI() {
+  const c = current(); if (!c) return;
+  const json = JSON.stringify(stripCourse(c), null, 2);
+  let instr;
+  if (caiMode() === "fill") {
+    instr = "あなたは講座設計のプロです。次の講座の「骨組み（章・レッスンのタイトル）」に台本を書き込んでください。\n"
+      + "- 章・レッスンの並びとタイトルは変えないでください。\n"
+      + "- 各レッスンの hook（つかみ）/ body（本編の台本）/ summary（まとめ）/ slides（スライド見出し・1行1枚）を埋めてください。すでに文章がある所はより良く整える程度に。\n"
+      + "- title / audience / goal / duration も空なら埋めてください。\n"
+      + "- 出力は、渡したのと同じJSON形式だけ。説明文や前置きは書かないでください。\n\n";
+  } else {
+    instr = "あなたは講座設計のプロです。次の講座の台本を、もっと良くしてください。\n"
+      + "- フックを強く、表現を分かりやすく、話し言葉として自然に整える。\n"
+      + "- 章・レッスンの並びとタイトルは基本そのまま。\n"
+      + "- 出力は、渡したのと同じJSON形式だけ。説明文や前置きは書かないでください。\n\n";
+  }
+  navigator.clipboard.writeText(instr + json)
+    .then(()=>toast("コピーしました。ChatGPTに貼り付けて送信してください"))
+    .catch(()=>toast("コピーできませんでした"));
+}
+function applyCourseAI() {
+  const raw = (document.getElementById("caiAnswer").value || "").trim();
+  const msg = document.getElementById("caiMsg");
+  if (!raw) { msg.style.color = "var(--danger)"; msg.textContent = "ChatGPTの答えを貼ってください。"; return; }
+  let obj;
+  try {
+    let txt = raw.replace(/```json/gi, "").replace(/```/g, "").trim();
+    const f = txt.indexOf("{"), l = txt.lastIndexOf("}");
+    if (f >= 0 && l > f) txt = txt.slice(f, l + 1);
+    obj = JSON.parse(txt);
+  } catch (e) {
+    msg.style.color = "var(--danger)";
+    msg.textContent = "読み取れませんでした。ChatGPTの答えを “まるごと全部” コピーし直して貼ってください。";
+    return;
+  }
+  const fresh = normalizeCourse(obj);
+  const c = current();
+  if (obj.title) c.title = fresh.title;
+  if (obj.audience) c.audience = fresh.audience;
+  if (obj.goal) c.goal = fresh.goal;
+  if (obj.duration) c.duration = fresh.duration;
+  if (fresh.sections && fresh.sections.length) c.sections = fresh.sections;
+  save();
+  document.getElementById("caiAnswer").value = "";
+  closeCourseAI();
+  renderMain();
+  toast("反映しました ✓");
+}
+
+/* ---------- 📐型から作る ---------- */
+const TEMPLATES = {
+  henyou: { name: "変容ストーリー型の講座", sections: [
+    { title: "第1章 現在地を知る（Before）", lessons: ["今のあなたの状態", "つまずきの正体", "ゴールの宣言"] },
+    { title: "第2章 変化の地図", lessons: ["全体像（道のり）", "最初のQuick Win"] },
+    { title: "第3章 実践で変わる", lessons: ["ステップ1", "ステップ2", "ステップ3"] },
+    { title: "第4章 定着と未来（After）", lessons: ["習慣にする", "次のステージへ"] },
+  ]},
+  kadai: { name: "課題解決型の講座", sections: [
+    { title: "第1章 問題を正しく捉える", lessons: ["よくある悩み", "本当の問題はどこ？"] },
+    { title: "第2章 原因を見つける", lessons: ["原因の分解", "チェックリスト"] },
+    { title: "第3章 解決策と手順", lessons: ["解決の全体像", "具体的な手順"] },
+    { title: "第4章 実践と確認", lessons: ["やってみる", "つまずき対処"] },
+  ]},
+  tsumiage: { name: "積み上げ型の講座", sections: [
+    { title: "第1章 基礎", lessons: ["基本の考え方", "最低限の用語"] },
+    { title: "第2章 応用", lessons: ["基礎を組み合わせる", "よくある使い方"] },
+    { title: "第3章 発展", lessons: ["一歩進んだテク", "応用例"] },
+    { title: "第4章 仕上げ", lessons: ["総合演習", "まとめ"] },
+  ]},
+  project: { name: "プロジェクト型の講座", sections: [
+    { title: "第1章 完成イメージとゴール", lessons: ["何を作る？", "完成形を見る"] },
+    { title: "第2章 準備", lessons: ["必要なもの", "下ごしらえ"] },
+    { title: "第3章 作る", lessons: ["手順1", "手順2", "手順3"] },
+    { title: "第4章 仕上げ・公開", lessons: ["仕上げ", "公開・共有"] },
+  ]},
+};
+function openTpl() { document.getElementById("tplBg").classList.add("show"); }
+function closeTpl() { document.getElementById("tplBg").classList.remove("show"); }
+function applyTemplate(key) {
+  const t = TEMPLATES[key]; if (!t) return;
+  const c = {
+    id: uid(), title: t.name, audience: "", goal: "", duration: "",
+    sections: t.sections.map(s => ({
+      id: uid(), title: s.title,
+      lessons: s.lessons.map(name => ({ id: uid(), title: name, duration: "", hook: "", body: "", summary: "", slides: "", _open: false }))
+    }))
+  };
+  state.courses.unshift(c);
+  state.currentId = c.id;
+  save();
+  closeTpl();
+  renderMain();
+  toast("型から骨組みを作りました ✓");
+}
+
+/* ---------- import (from a file) ---------- */
+function pickFile() { document.getElementById("fileInput").click(); }
+function importFromFile(ev) {
+  const file = ev.target.files && ev.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      let txt = String(reader.result).replace(/```json/gi, "").replace(/```/g, "").trim();
+      const first = txt.indexOf("{"), last = txt.lastIndexOf("}");
+      if (first >= 0 && last > first) txt = txt.slice(first, last + 1);
+      const obj = JSON.parse(txt);
+      const c = normalizeCourse(obj);
+      state.courses.unshift(c);
+      state.currentId = c.id;
+      save();
+      renderMain();
+      toast("取り込みました ✓");
+    } catch (e) {
+      toast("このファイルは読み取れませんでした");
+    }
+  };
+  reader.readAsText(file);
+  ev.target.value = ""; // 同じファイルを続けて選べるようにリセット
+}
+
+/* ---------- import (from ChatGPT JSON) ---------- */
+function openImport() {
+  document.getElementById("importText").value = "";
+  document.getElementById("importMsg").textContent = "";
+  document.getElementById("importBg").classList.add("show");
+}
+function closeImport() { document.getElementById("importBg").classList.remove("show"); }
+function doImport() {
+  const raw = document.getElementById("importText").value.trim();
+  const msg = document.getElementById("importMsg");
+  if (!raw) { msg.style.color = "var(--danger)"; msg.textContent = "データが空です。"; return; }
+  let obj;
+  try {
+    // tolerate ```json fences and surrounding prose
+    let txt = raw.replace(/```json/gi, "").replace(/```/g, "").trim();
+    const first = txt.indexOf("{"), last = txt.lastIndexOf("}");
+    if (first > 0 || last < txt.length-1) txt = txt.slice(first, last+1);
+    obj = JSON.parse(txt);
+  } catch (e) {
+    msg.style.color = "var(--danger)";
+    msg.textContent = "読み取れませんでした。ChatGPTの出力を丸ごと貼り直してください。";
+    return;
+  }
+  const c = normalizeCourse(obj);
+  state.courses.unshift(c);
+  state.currentId = c.id;
+  save();
+  closeImport();
+  renderMain();
+  toast("取り込みました ✓");
+}
+function normalizeCourse(o) {
+  o = o || {};
+  return {
+    id: uid(),
+    title: o.title || "取り込んだ講座",
+    audience: o.audience || "",
+    goal: o.goal || "",
+    duration: o.duration || "",
+    sections: (Array.isArray(o.sections) ? o.sections : []).map(s => ({
+      id: uid(),
+      title: (s && s.title) || "セクション",
+      lessons: (Array.isArray(s && s.lessons) ? s.lessons : []).map(l => ({
+        id: uid(),
+        title: (l && l.title) || "レッスン",
+        duration: (l && l.duration) || "",
+        hook: (l && l.hook) || "",
+        body: (l && l.body) || "",
+        summary: (l && l.summary) || "",
+        slides: (l && l.slides) || "",
+        _open: false
+      }))
+    }))
+  };
+}
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 1600);
+}
+
+/* ---------- テーマ色 ---------- */
+function setTheme(t) {
+  document.body.setAttribute("data-theme", t);
+  localStorage.setItem("kouza-theme", t);
+  const sel = document.getElementById("themeSel");
+  if (sel) sel.value = t;
+}
+
+/* ---------- init ---------- */
+load();
+setTheme(localStorage.getItem("kouza-theme") || "rose");
+renderMain();
+</script>
+</body>
+</html>
