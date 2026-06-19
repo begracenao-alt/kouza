@@ -1126,7 +1126,7 @@ function buildSlides() {
     out.push({ type: "divider", kicker: `第${si+1}章`, title: s.title });
     s.lessons.forEach((l, li) => {
       const lines = (l.slides || "").split(/\n+/).map(x => x.replace(/^[・\-\*\s]+/, "").trim()).filter(Boolean);
-      out.push({ type: "content", kicker: `${si+1}-${li+1}`, title: l.title, sub: l.duration || "", bullets: lines });
+      out.push({ type: "content", kicker: `${si+1}-${li+1}`, title: l.title, sub: "", bullets: lines });
     });
   });
   return out;
