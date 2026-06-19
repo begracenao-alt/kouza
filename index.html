@@ -864,14 +864,19 @@ function buildMarkdown() {
 }
 function buildSlideText() {
   const c = current();
-  let m = `タイトル: ${c.title || "（無題の講座）"}\n`;
-  if (c.goal) m += `ゴール: ${c.goal}\n`;
+  // スライドには時間表記を出さない（（5分）/ 約8分 / 12:34 などを取り除く）
+  const stripDur = x => String(x || "")
+    .replace(/[（(]\s*(約|およそ)?\s*\d+\s*[〜~\-‐]?\s*\d*\s*分(間)?\s*[）)]/g, "")
+    .replace(/\b\d{1,2}:\d{2}(?::\d{2})?\b/g, "")
+    .replace(/\s{2,}/g, " ").trim();
+  let m = `タイトル: ${stripDur(c.title) || "（無題の講座）"}\n`;
+  if (c.goal) m += `ゴール: ${stripDur(c.goal)}\n`;
   m += `\n（このテキストを Googleスライドの「SlidesAI」/ Canva / Gamma などに貼ると、スライドが作れます）\n\n`;
   c.sections.forEach((s) => {
-    m += `== ${s.title} ==\n\n`;
+    m += `== ${stripDur(s.title)} ==\n\n`;
     s.lessons.forEach((l) => {
-      m += `# ${l.title}\n`;
-      const lines = (l.slides || "").split(/\n+/).map(x => x.replace(/^[・\-\*\s]+/, "").trim()).filter(Boolean);
+      m += `# ${stripDur(l.title)}\n`;
+      const lines = (l.slides || "").split(/\n+/).map(x => stripDur(x.replace(/^[・\-\*\s]+/, "").trim())).filter(Boolean);
       if (lines.length) lines.forEach(x => m += `- ${x}\n`);
       else m += `- （スライド見出しは未記入）\n`;
       m += `\n`;
