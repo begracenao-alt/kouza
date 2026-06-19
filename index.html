@@ -1125,8 +1125,10 @@ function buildSlides() {
   c.sections.forEach((s, si) => {
     out.push({ type: "divider", kicker: `第${si+1}章`, title: s.title });
     s.lessons.forEach((l, li) => {
-      const lines = (l.slides || "").split(/\n+/).map(x => x.replace(/^[・\-\*\s]+/, "").trim()).filter(Boolean);
-      out.push({ type: "content", kicker: `${si+1}-${li+1}`, title: l.title, sub: "", bullets: lines });
+      var timeOnly = /^(所要時間|目安|時間|尺|長さ|時間目安)?\s*[:：]?\s*(約|およそ)?\s*\d+\s*[〜~\-‐]?\s*\d*\s*分(間)?$/;
+      var sd = x => String(x||"").replace(/[（(]\s*(約|およそ)?\s*\d+\s*[〜~\-‐]?\s*\d*\s*分(間)?\s*[）)]/g,"").replace(/\b\d{1,2}:\d{2}(?::\d{2})?\b/g,"").replace(/\s{2,}/g," ").trim();
+      const lines = (l.slides || "").split(/\n+/).map(x => x.replace(/^[・\-\*\s]+/, "").trim()).filter(Boolean).filter(function(x){return !timeOnly.test(x);}).map(sd).filter(Boolean);
+      out.push({ type: "content", kicker: `${si+1}-${li+1}`, title: sd(l.title), sub: "", bullets: lines });
     });
   });
   return out;
