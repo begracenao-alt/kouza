@@ -1004,7 +1004,11 @@ function renderAppsScriptCode(){
 '      count++;\n' +
 '    }\n' +
 '  }\n' +
-'  Browser.msgBox(count + " 枚 の スライド に 台本 を 投入 しました ✨");\n' +
+'  try {\n' +
+'    SlidesApp.getUi().alert(count + " 枚 の スライド に 台本 を 投入 しました ✨");\n' +
+'  } catch (e) {\n' +
+'    Logger.log(count + " 枚 の スライド に 台本 を 投入 しました ✨");\n' +
+'  }\n' +
 '}';
   document.getElementById("asCode").textContent = code;
 }
