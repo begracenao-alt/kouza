@@ -1512,7 +1512,8 @@ function editStorageItem(id){
   document.getElementById("stgFormCard").style.background = "linear-gradient(135deg,#fff8ee,#fdf0d6)";
   document.getElementById("stgSaveBtn").textContent = "💾 上書き保存";
   document.getElementById("stgCancelBtn").style.display = "inline-block";
-  document.querySelector("#storageBg .modal").scrollTo({top:0, behavior:"smooth"});
+  try { document.querySelector("#storageBg .modal").scrollTop = 0; } catch(e){}
+  document.getElementById("stgTitle").focus();
 }
 
 function cancelEdit(){
@@ -1555,9 +1556,9 @@ function renderStorage(){
       +     '<div style="font-size:11.5px;color:var(--muted);margin-bottom:2px">'+badge+'</div>'
       +     url + memo
       +   '</div>'
-      +   '<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">'
-      +     '<button class="btn btn-sm" title="編集" onclick="editStorageItem(\''+it.id+'\')">✎</button>'
-      +     '<button class="btn btn-sm" title="削除" onclick="deleteStorageItem(\''+it.id+'\')">🗑</button>'
+      +   '<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">'
+      +     '<button class="btn btn-sm" style="min-width:64px;font-size:12px" onclick="editStorageItem(\''+it.id+'\')">✎ 編集</button>'
+      +     '<button class="btn btn-sm" style="min-width:64px;font-size:12px" onclick="deleteStorageItem(\''+it.id+'\')">🗑 削除</button>'
       +   '</div>'
       + '</div>'
       + '</div>';
