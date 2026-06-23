@@ -876,6 +876,11 @@ function renderLesson(s, l, si, li) {
       <button class="btn btn-sm btn-ghost" onclick="event.stopPropagation();delLesson('${s.id}','${l.id}')">✕</button>
     </div>
     <div class="lesson-body">
+      <div style="background:var(--accent-soft);border-radius:10px;padding:10px 12px;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-primary" onclick="copyLessonNote('${s.id}','${l.id}')" style="font-size:12px">📋 この台本をコピー</button>
+        <span style="font-size:11.5px;color:var(--muted)">→ パワポ／Google スライド の ノート欄 に 貼り付け</span>
+        <span class="hint" id="copyMsg-${l.id}" style="font-size:11.5px;margin-left:auto"></span>
+      </div>
       <div class="field">
         <label>尺の目安</label>
         <input class="input" value="${esc(l.duration)}" placeholder="例：8分"
@@ -901,6 +906,34 @@ function renderLesson(s, l, si, li) {
       </div>
     </div>
   </div>`;
+}
+
+async function copyLessonNote(sid, lid){
+  const c = current(); if (!c) return;
+  const s = c.sections.find(x => x.id === sid); if (!s) return;
+  const l = s.lessons.find(x => x.id === lid); if (!l) return;
+  let text = "";
+  if (l.title) text += "【" + l.title + "】\n\n";
+  if (l.hook) text += "■ つかみ\n" + l.hook + "\n\n";
+  if (l.body) text += "■ 本編\n" + l.body + "\n\n";
+  if (l.summary) text += "■ まとめ\n" + l.summary + "\n\n";
+  if (l.slides) text += "■ スライド見出し\n" + l.slides + "\n";
+  text = text.trim();
+  const msg = document.getElementById("copyMsg-" + lid);
+  try {
+    await navigator.clipboard.writeText(text);
+    if (msg) { msg.textContent = "✨ コピーしました"; msg.style.color = "var(--ok)"; setTimeout(()=>{ msg.textContent=""; }, 2500); }
+  } catch(e) {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "fixed"; ta.style.left = "-9999px";
+      document.body.appendChild(ta); ta.select();
+      document.execCommand("copy"); document.body.removeChild(ta);
+      if (msg) { msg.textContent = "✨ コピーしました"; msg.style.color = "var(--ok)"; setTimeout(()=>{ msg.textContent=""; }, 2500); }
+    } catch(e2) {
+      alert("コピー できません でした。\n下 の 台本 を 手動 で 選んで コピー して ください。");
+    }
+  }
 }
 
 function toggleLesson(sid, lid) {
