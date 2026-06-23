@@ -652,6 +652,7 @@ function load() {
 function save() {
   localStorage.setItem(STORE_KEY, JSON.stringify(state));
   renderSidebar();
+  try { stgSyncFromBuilder(); } catch(e) {}
 }
 function uid() { return Math.random().toString(36).slice(2, 9) + (state.courses.length); }
 
@@ -676,6 +677,11 @@ function deleteCourse(id) {
   if (!confirm("この講座を削除します。よろしいですか？")) return;
   state.courses = state.courses.filter(c => c.id !== id);
   if (state.currentId === id) state.currentId = state.courses[0]?.id || null;
+  try {
+    const items = stgLoad();
+    items.forEach(it => { if (it.courseId === id) it.courseId = ""; });
+    stgSave(items);
+  } catch(e) {}
   save();
   renderMain();
 }
@@ -1464,6 +1470,52 @@ function stgTypeLabel(key){
   return t ? t.label : "";
 }
 
+/* ビルダー の 講座 を 保管庫 に 自動 同期（追加・タイトル更新） */
+function stgSyncFromBuilder(){
+  const items = stgLoad();
+  const courses = (state && state.courses) || [];
+  let changed = false;
+  let maxAt = items.length ? Math.max(...items.map(i=>i.createdAt||0)) : 0;
+  courses.forEach(c => {
+    const existing = items.find(i => i.courseId === c.id);
+    if (existing) {
+      const t = c.title || "（無題の講座）";
+      if (existing.title !== t) {
+        existing.title = t;
+        existing.updatedAt = (existing.updatedAt||0) + 1;
+        changed = true;
+      }
+    } else {
+      maxAt += 1;
+      items.push({
+        id: stgId(),
+        courseId: c.id,
+        title: c.title || "（無題の講座）",
+        url: "", status: "draft", type: "course", memo: "",
+        createdAt: maxAt, updatedAt: maxAt
+      });
+      changed = true;
+    }
+  });
+  if (changed) stgSave(items);
+}
+
+/* 保管庫 から ビルダー の 講座 を 開く */
+function openCourseFromStorage(courseId){
+  if (!courseId) return;
+  const c = state.courses.find(x => x.id === courseId);
+  if (!c) {
+    alert("この 講座 は ビルダー から 削除 されて います");
+    return;
+  }
+  state.currentId = courseId;
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  closeStorage();
+  renderSidebar();
+  renderMain();
+  window.scrollTo(0, 0);
+}
+
 function renderTypeSelect(){
   const sel = document.getElementById("stgType");
   if (!sel) return;
@@ -1540,6 +1592,7 @@ function manageTypes(){
 
 function openStorage(){
   document.getElementById("storageBg").style.display = "flex";
+  try { stgSyncFromBuilder(); } catch(e) {}
   renderTypeSelect();
   renderTypeFilters();
   renderStorage();
@@ -1668,7 +1721,8 @@ function renderStorage(){
     const badge = it.status==="done" ? "✅ 完成" : it.status==="public" ? "🌟 公開済み" : "🚧 作りかけ";
     const typeLabel = it.type ? stgTypeLabel(it.type) : "";
     const typeBadge = typeLabel ? '<span style="display:inline-block;padding:2px 8px;background:var(--accent-soft);border-radius:10px;font-size:11px;margin-right:6px;color:var(--ink)">'+esc(typeLabel)+'</span>' : '';
-    const url = it.url ? '<a href="'+esc(it.url)+'" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent);word-break:break-all;text-decoration:none;display:inline-block;margin-top:4px">'+esc(it.url)+' ↗</a>' : '';
+    const url = it.url ? '<div style="margin-top:6px"><a href="'+esc(it.url)+'" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent);word-break:break-all;text-decoration:none">🎤 '+esc(it.url)+' ↗</a></div>' : '';
+    const builderLink = it.courseId ? '<div style="margin-top:6px"><a href="#" onclick="event.preventDefault();openCourseFromStorage(\''+it.courseId+'\')" style="font-size:12px;color:var(--accent);text-decoration:none;font-weight:500">📝 ビルダー で 開く ↗</a></div>' : '';
     const memo = it.memo ? '<div style="font-size:12.5px;color:var(--muted);margin-top:8px;white-space:pre-wrap;line-height:1.7">'+esc(it.memo)+'</div>' : '';
     return '<div class="card" style="margin-bottom:10px;padding:14px 16px">'
       + '<div class="row-flex" style="justify-content:space-between;align-items:flex-start;gap:10px">'
@@ -1676,7 +1730,7 @@ function renderStorage(){
       +     '<div style="margin-bottom:6px">'+typeBadge+'</div>'
       +     '<div style="font-weight:600;margin-bottom:4px;font-size:15px;color:var(--ink)">'+esc(it.title)+'</div>'
       +     '<div style="font-size:11.5px;color:var(--muted);margin-bottom:2px">'+badge+'</div>'
-      +     url + memo
+      +     url + builderLink + memo
       +   '</div>'
       +   '<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">'
       +     '<button class="btn btn-sm" style="min-width:64px;font-size:12px" onclick="editStorageItem(\''+it.id+'\')">✎ 編集</button>'
