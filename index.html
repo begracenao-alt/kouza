@@ -511,6 +511,11 @@
           <option value="public">🌟 公開済み</option>
         </select>
       </div>
+      <div class="row-flex" style="gap:6px;margin-bottom:6px;align-items:center">
+        <label style="font-size:12px;color:var(--muted);white-space:nowrap">種類：</label>
+        <select class="input" id="stgType" style="font-size:13px;padding:5px 8px;flex:1"></select>
+        <button class="btn btn-sm" onclick="addNewType()" style="white-space:nowrap;font-size:11px;padding:5px 10px">＋ 種類</button>
+      </div>
       <textarea class="textarea" id="stgMemo" placeholder="メモ（誰向け／何分／値段 など 自由に）" style="min-height:60px;font-size:13px;margin-bottom:8px"></textarea>
       <div class="row-flex" style="gap:8px;align-items:center">
         <button class="btn btn-primary btn-sm" id="stgSaveBtn" onclick="saveStorageForm()">＋ 加える</button>
@@ -534,6 +539,8 @@
       <button class="btn btn-sm" onclick="importStorage()">📥 バックアップ取り込み</button>
       <input type="file" id="stgFileInput" accept=".json" style="display:none" onchange="importStorageFile(event)">
     </div>
+
+    <div id="stgFilters" class="row-flex" style="gap:6px;margin-bottom:10px;flex-wrap:wrap"></div>
 
     <div id="stgList"></div>
   </div>
@@ -1428,12 +1435,110 @@ function setTheme(t) {
 
 /* ---------- 📚 講座保管庫 ---------- */
 const STG_KEY = "kouza_storage_v1";
+const STG_TYPE_KEY = "kouza_storage_types_v1";
+const DEFAULT_TYPES = [
+  {key:"course",  label:"📚 講座"},
+  {key:"seminar", label:"🎤 セミナー"},
+  {key:"single",  label:"✨ 単発"},
+  {key:"work",    label:"🌿 ワーク"},
+  {key:"free",    label:"🎁 無料"},
+  {key:"other",   label:"✏ その他"}
+];
+let stgFilter = "all";
 function stgLoad(){ try{return JSON.parse(localStorage.getItem(STG_KEY)||"[]");}catch(e){return [];} }
 function stgSave(a){ try{localStorage.setItem(STG_KEY,JSON.stringify(a));}catch(e){} }
 function stgId(){ return "s"+Math.random().toString(36).slice(2,9)+stgLoad().length; }
+function stgLoadTypes(){
+  try{
+    const t = JSON.parse(localStorage.getItem(STG_TYPE_KEY));
+    if (Array.isArray(t) && t.length) return t;
+  }catch(e){}
+  return DEFAULT_TYPES.slice();
+}
+function stgSaveTypes(arr){ try{localStorage.setItem(STG_TYPE_KEY, JSON.stringify(arr));}catch(e){} }
+function stgTypeLabel(key){
+  const t = stgLoadTypes().find(x => x.key === key);
+  return t ? t.label : "";
+}
+
+function renderTypeSelect(){
+  const sel = document.getElementById("stgType");
+  if (!sel) return;
+  const cur = sel.value;
+  const types = stgLoadTypes();
+  sel.innerHTML = types.map(t =>
+    '<option value="'+esc(t.key)+'">'+esc(t.label)+'</option>'
+  ).join("");
+  if (types.find(t => t.key === cur)) sel.value = cur;
+}
+
+function renderTypeFilters(){
+  const box = document.getElementById("stgFilters");
+  if (!box) return;
+  const types = stgLoadTypes();
+  const items = stgLoad();
+  const countAll = items.length;
+  const counts = {};
+  items.forEach(i => { if (i.type) counts[i.type] = (counts[i.type]||0)+1; });
+  let html = '<button class="btn btn-sm '+(stgFilter==="all"?"btn-primary":"")+'" style="font-size:12px" onclick="setStgFilter(\'all\')">すべて('+countAll+')</button>';
+  types.forEach(t => {
+    const c = counts[t.key] || 0;
+    html += '<button class="btn btn-sm '+(stgFilter===t.key?"btn-primary":"")+'" style="font-size:12px" onclick="setStgFilter(\''+t.key+'\')">'+esc(t.label)+'('+c+')</button>';
+  });
+  html += '<button class="btn btn-sm" style="font-size:12px;opacity:.75" onclick="manageTypes()" title="種類を編集・削除">⚙ 種類管理</button>';
+  box.innerHTML = html;
+}
+
+function setStgFilter(key){
+  stgFilter = key;
+  renderTypeFilters();
+  renderStorage();
+}
+
+function addNewType(){
+  const label = prompt("新しい 種類 の 名前 を 入れて ください\n（例：📅 月例会、 🌸 体験会、 💎 個別）");
+  if (label === null) return;
+  const trimmed = label.trim();
+  if (!trimmed) return;
+  const types = stgLoadTypes();
+  if (types.find(t => t.label === trimmed)) {
+    alert("同じ 名前 が すでに あります");
+    return;
+  }
+  const key = "t"+Math.random().toString(36).slice(2,9);
+  types.push({key:key, label:trimmed});
+  stgSaveTypes(types);
+  renderTypeSelect();
+  renderTypeFilters();
+  const sel = document.getElementById("stgType");
+  if (sel) sel.value = key;
+}
+
+function manageTypes(){
+  const types = stgLoadTypes();
+  if (!types.length) { alert("種類 が ありません"); return; }
+  const labels = types.map((t,i)=>(i+1)+". "+t.label).join("\n");
+  const idx = prompt("削除 する 種類 の 番号 を 入れて ください\n（カード の 中身 は 残ります が、 タグ は 外れます）\n\n"+labels+"\n\n（キャンセル で 何もしません）");
+  if (idx === null) return;
+  const i = parseInt(idx) - 1;
+  if (isNaN(i) || i < 0 || i >= types.length) { alert("番号 が ちがいます"); return; }
+  if (!confirm("「"+types[i].label+"」 を 削除 しますか？")) return;
+  const removed = types[i].key;
+  types.splice(i, 1);
+  stgSaveTypes(types);
+  const items = stgLoad();
+  items.forEach(it => { if (it.type === removed) it.type = ""; });
+  stgSave(items);
+  if (stgFilter === removed) stgFilter = "all";
+  renderTypeSelect();
+  renderTypeFilters();
+  renderStorage();
+}
 
 function openStorage(){
   document.getElementById("storageBg").style.display = "flex";
+  renderTypeSelect();
+  renderTypeFilters();
   renderStorage();
 }
 function closeStorage(){
@@ -1453,13 +1558,14 @@ function saveStorageForm(){
   }
   const url = document.getElementById("stgURL").value.trim();
   const status = document.getElementById("stgStatus").value;
+  const type = document.getElementById("stgType").value;
   const memo = document.getElementById("stgMemo").value;
   const items = stgLoad();
 
   if (stgEditingId) {
     const it = items.find(i => i.id === stgEditingId);
     if (it) {
-      it.title = t; it.url = url; it.status = status; it.memo = memo;
+      it.title = t; it.url = url; it.status = status; it.type = type; it.memo = memo;
       it.updatedAt = (it.updatedAt||0) + 1;
       stgSave(items);
     }
@@ -1471,7 +1577,7 @@ function saveStorageForm(){
   } else {
     items.push({
       id: stgId(),
-      title: t, url: url, status: status, memo: memo,
+      title: t, url: url, status: status, type: type, memo: memo,
       createdAt: items.length ? Math.max(...items.map(i=>i.createdAt||0)) + 1 : 1,
       updatedAt: items.length ? Math.max(...items.map(i=>i.createdAt||0)) + 1 : 1
     });
@@ -1482,6 +1588,7 @@ function saveStorageForm(){
     msg.style.color = "var(--ok)";
     setTimeout(()=>{ msg.textContent=""; }, 2000);
   }
+  renderTypeFilters();
   renderStorage();
 }
 
@@ -1490,12 +1597,15 @@ function clearStorageForm(){
   document.getElementById("stgURL").value = "";
   document.getElementById("stgMemo").value = "";
   document.getElementById("stgStatus").value = "draft";
+  const tSel = document.getElementById("stgType");
+  if (tSel && tSel.options.length) tSel.selectedIndex = 0;
 }
 
 function deleteStorageItem(id){
   if (!confirm("この 講座 を 保管庫 から 削除 しますか？")) return;
   stgSave(stgLoad().filter(i => i.id !== id));
   if (stgEditingId === id) cancelEdit();
+  renderTypeFilters();
   renderStorage();
 }
 
@@ -1507,6 +1617,11 @@ function editStorageItem(id){
   document.getElementById("stgTitle").value = it.title || "";
   document.getElementById("stgURL").value = it.url || "";
   document.getElementById("stgStatus").value = it.status || "draft";
+  const tSel = document.getElementById("stgType");
+  if (tSel) {
+    const exists = stgLoadTypes().find(t => t.key === it.type);
+    tSel.value = exists ? it.type : (tSel.options.length ? tSel.options[0].value : "");
+  }
   document.getElementById("stgMemo").value = it.memo || "";
   document.getElementById("stgFormTitle").textContent = "✎ 編集中：" + (it.title || "");
   document.getElementById("stgFormCard").style.background = "linear-gradient(135deg,#fff8ee,#fdf0d6)";
@@ -1529,6 +1644,7 @@ function renderStorage(){
   let items = stgLoad();
   const q = (document.getElementById("stgSearch").value || "").toLowerCase();
   const sort = document.getElementById("stgSort").value;
+  if (stgFilter !== "all") items = items.filter(i => i.type === stgFilter);
   if (q) items = items.filter(i =>
     (i.title||"").toLowerCase().indexOf(q) >= 0 ||
     (i.memo||"").toLowerCase().indexOf(q) >= 0
@@ -1547,11 +1663,14 @@ function renderStorage(){
   }
   L.innerHTML = items.map(it => {
     const badge = it.status==="done" ? "✅ 完成" : it.status==="public" ? "🌟 公開済み" : "🚧 作りかけ";
+    const typeLabel = it.type ? stgTypeLabel(it.type) : "";
+    const typeBadge = typeLabel ? '<span style="display:inline-block;padding:2px 8px;background:var(--accent-soft);border-radius:10px;font-size:11px;margin-right:6px;color:var(--ink)">'+esc(typeLabel)+'</span>' : '';
     const url = it.url ? '<a href="'+esc(it.url)+'" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent);word-break:break-all;text-decoration:none;display:inline-block;margin-top:4px">'+esc(it.url)+' ↗</a>' : '';
     const memo = it.memo ? '<div style="font-size:12.5px;color:var(--muted);margin-top:8px;white-space:pre-wrap;line-height:1.7">'+esc(it.memo)+'</div>' : '';
     return '<div class="card" style="margin-bottom:10px;padding:14px 16px">'
       + '<div class="row-flex" style="justify-content:space-between;align-items:flex-start;gap:10px">'
       +   '<div style="flex:1;min-width:0">'
+      +     '<div style="margin-bottom:6px">'+typeBadge+'</div>'
       +     '<div style="font-weight:600;margin-bottom:4px;font-size:15px;color:var(--ink)">'+esc(it.title)+'</div>'
       +     '<div style="font-size:11.5px;color:var(--muted);margin-bottom:2px">'+badge+'</div>'
       +     url + memo
