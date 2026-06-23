@@ -1090,14 +1090,14 @@ function renderFullSlideCode(c){
 '    const slide = presentation.appendSlide(SlidesApp.PredefinedLayout.TITLE_AND_BODY);\n' +
 '    const data = SLIDES[i];\n' +
 '\n' +
-'    slide.getPlaceholders().forEach(ph => {\n' +
-'      const type = ph.getPlaceholderType();\n' +
-'      if (type === SlidesApp.PlaceholderType.TITLE && data.title) {\n' +
-'        ph.asShape().getText().setText(data.title);\n' +
-'      } else if (type === SlidesApp.PlaceholderType.BODY && data.body) {\n' +
-'        ph.asShape().getText().setText(data.body);\n' +
-'      }\n' +
-'    });\n' +
+'    const titlePh = slide.getPlaceholder(SlidesApp.PlaceholderType.TITLE);\n' +
+'    if (titlePh && data.title) {\n' +
+'      titlePh.asShape().getText().setText(data.title);\n' +
+'    }\n' +
+'    const bodyPh = slide.getPlaceholder(SlidesApp.PlaceholderType.BODY);\n' +
+'    if (bodyPh && data.body) {\n' +
+'      bodyPh.asShape().getText().setText(data.body);\n' +
+'    }\n' +
 '\n' +
 '    if (data.note) {\n' +
 '      slide.getNotesPage().getSpeakerNotesShape().getText().setText(data.note);\n' +
