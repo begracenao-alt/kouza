@@ -558,9 +558,15 @@
       <button class="btn btn-sm" onclick="closeAppsScriptCode()">閉じる</button>
     </div>
     <p class="hint" style="font-size:13px;margin:6px 0 14px">
-      この 講座 の 全 レッスン の 台本 を、 <strong>Google スライド の ノート欄 に 一気 に 流し込み</strong> します ✨<br>
+      この 講座 を、 <strong>Google スライド に 一気 に 自動投入</strong> します ✨<br>
       15枚 とかに 1枚 ずつ 貼り付け、 もう しません！
     </p>
+
+    <div class="row-flex" style="gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-primary" id="asModeNote" onclick="setAsMode('note')">📝 ノート だけ</button>
+      <button class="btn btn-sm" id="asModeAll" onclick="setAsMode('all')">🎨 スライド ぜんぶ（本体＋ノート）</button>
+    </div>
+    <p class="hint" id="asModeDesc" style="font-size:12px;margin:0 0 12px;color:var(--muted);line-height:1.7"></p>
 
     <div class="card" style="margin-bottom:14px;background:var(--accent-soft);border:none;box-shadow:none">
       <h3 style="margin:0 0 10px;font-size:14px;color:var(--ink)">📝 やり方（初回 だけ ちょっと 手順 あり）</h3>
@@ -572,7 +578,7 @@
         <li>最初 から ある コード（function myFunction…）を <strong>全部 消す</strong></li>
         <li>そこ に <strong>貼り付け</strong>（Cmd+V）</li>
         <li>💾 <strong>保存</strong>（Cmd+S）</li>
-        <li>上 の メニュー の 関数名 を <strong>「全ノートを投入」</strong> に 選ぶ → ▶ 実行</li>
+        <li>上 の メニュー の 関数名 を <strong>「全ノートを投入」 or 「全スライドを投入」</strong> に 選ぶ → ▶ 実行</li>
         <li>初回 のみ：<strong>「権限 を 確認」</strong> → 自分 の Google アカウント → <strong>「詳細」→「(プロジェクト名) に移動」→「許可」</strong></li>
         <li>✨ 全 スライド の ノート に 自動 で 台本 が 入る！</li>
       </ol>
@@ -963,6 +969,27 @@ function buildLessonNoteText(l) {
   return text.trim();
 }
 
+let asMode = "note"; // "note" or "all"
+function setAsMode(mode){
+  asMode = mode;
+  const noteBtn = document.getElementById("asModeNote");
+  const allBtn = document.getElementById("asModeAll");
+  if (mode === "note") {
+    noteBtn.classList.add("btn-primary");
+    allBtn.classList.remove("btn-primary");
+  } else {
+    allBtn.classList.add("btn-primary");
+    noteBtn.classList.remove("btn-primary");
+  }
+  const desc = document.getElementById("asModeDesc");
+  if (mode === "note") {
+    desc.innerHTML = "📝 <strong>ノート だけ</strong>：既存 の Google スライド の <strong>ノート欄 だけ</strong> に 台本 を 投入（スライド本体 は そのまま）";
+  } else {
+    desc.innerHTML = "🎨 <strong>スライド ぜんぶ</strong>：講座ビルダー で 作った 内容 を、 <strong>スライド本体（タイトル＋箇条書き）＋ ノート</strong> として 一気 に 作成<br>⚠ <strong>既存 の スライド の 中身 は 置き換わります</strong>。 新しい 空 の スライド で 試して ください";
+  }
+  renderAppsScriptCode();
+}
+
 function openAppsScriptCode(){
   const c = current();
   if (!c) {
@@ -970,7 +997,7 @@ function openAppsScriptCode(){
     return;
   }
   document.getElementById("asBg").style.display = "flex";
-  renderAppsScriptCode();
+  setAsMode(asMode);
 }
 function closeAppsScriptCode(){
   document.getElementById("asBg").style.display = "none";
@@ -979,6 +1006,14 @@ function closeAppsScriptCode(){
 function renderAppsScriptCode(){
   const c = current();
   if (!c) return;
+  if (asMode === "all") {
+    renderFullSlideCode(c);
+  } else {
+    renderNoteOnlyCode(c);
+  }
+}
+
+function renderNoteOnlyCode(c){
   const notes = [];
   c.sections.forEach(s => {
     s.lessons.forEach(l => notes.push(buildLessonNoteText(l)));
@@ -1016,6 +1051,68 @@ function renderAppsScriptCode(){
 '    SlidesApp.getUi().alert(count + " 枚 の スライド に 台本 を 投入 しました ✨");\n' +
 '  } catch (e) {\n' +
 '    Logger.log(count + " 枚 の スライド に 台本 を 投入 しました ✨");\n' +
+'  }\n' +
+'}';
+  document.getElementById("asCode").textContent = code;
+}
+
+function renderFullSlideCode(c){
+  const slidesData = [];
+  c.sections.forEach(s => {
+    s.lessons.forEach(l => {
+      const title = (l.title || "").trim();
+      const lines = (l.slides || "")
+        .split(/\n+/)
+        .map(x => x.replace(/^[・\-\*\s]+/, "").trim())
+        .filter(Boolean);
+      const body = lines.length ? lines.map(x => "・" + x).join("\n") : "";
+      const note = buildLessonNoteText(l);
+      slidesData.push({title: title, body: body, note: note});
+    });
+  });
+  const code =
+'/**\n' +
+' * 講座ビルダー → Google スライド 一括作成\n' +
+' * 講座：' + (c.title || "（無題）") + '\n' +
+' * 作成 スライド 数：' + slidesData.length + '\n' +
+' *\n' +
+' * 使い方：💾 保存（Cmd+S）→ 関数「全スライドを投入」を選ぶ → ▶ 実行\n' +
+' * ⚠ 既存 の スライド の 中身 は 置き換わります\n' +
+' */\n' +
+'function 全スライドを投入() {\n' +
+'  const SLIDES = ' + JSON.stringify(slidesData, null, 2) + ';\n' +
+'\n' +
+'  const presentation = SlidesApp.getActivePresentation();\n' +
+'  const original = presentation.getSlides().slice();\n' +
+'\n' +
+'  // 新しい スライド を 追加（タイトル＋本文 レイアウト）\n' +
+'  for (let i = 0; i < SLIDES.length; i++) {\n' +
+'    const slide = presentation.appendSlide(SlidesApp.PredefinedLayout.TITLE_AND_BODY);\n' +
+'    const data = SLIDES[i];\n' +
+'\n' +
+'    slide.getPlaceholders().forEach(ph => {\n' +
+'      const type = ph.getPlaceholderType();\n' +
+'      if (type === SlidesApp.PlaceholderType.TITLE && data.title) {\n' +
+'        ph.asShape().getText().setText(data.title);\n' +
+'      } else if (type === SlidesApp.PlaceholderType.BODY && data.body) {\n' +
+'        ph.asShape().getText().setText(data.body);\n' +
+'      }\n' +
+'    });\n' +
+'\n' +
+'    if (data.note) {\n' +
+'      slide.getNotesPage().getSpeakerNotesShape().getText().setText(data.note);\n' +
+'    }\n' +
+'  }\n' +
+'\n' +
+'  // 元 の スライド を 削除\n' +
+'  for (let i = 0; i < original.length; i++) {\n' +
+'    try { original[i].remove(); } catch (e) {}\n' +
+'  }\n' +
+'\n' +
+'  try {\n' +
+'    SlidesApp.getUi().alert(SLIDES.length + " 枚 の スライド を 作成 しました ✨");\n' +
+'  } catch (e) {\n' +
+'    Logger.log(SLIDES.length + " 枚 の スライド を 作成 しました ✨");\n' +
 '  }\n' +
 '}';
   document.getElementById("asCode").textContent = code;
