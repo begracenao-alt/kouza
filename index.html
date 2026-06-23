@@ -995,9 +995,17 @@ function renderAppsScriptCode(){
 'function 全ノートを投入() {\n' +
 '  const NOTES = ' + JSON.stringify(notes, null, 2) + ';\n' +
 '\n' +
-'  const slides = SlidesApp.getActivePresentation().getSlides();\n' +
+'  const presentation = SlidesApp.getActivePresentation();\n' +
+'  let slides = presentation.getSlides();\n' +
+'\n' +
+'  // スライド が 足りなければ 白紙 を 自動 で 追加\n' +
+'  while (slides.length < NOTES.length) {\n' +
+'    presentation.appendSlide(SlidesApp.PredefinedLayout.BLANK);\n' +
+'    slides = presentation.getSlides();\n' +
+'  }\n' +
+'\n' +
 '  let count = 0;\n' +
-'  for (let i = 0; i < slides.length && i < NOTES.length; i++) {\n' +
+'  for (let i = 0; i < NOTES.length; i++) {\n' +
 '    const note = NOTES[i];\n' +
 '    if (note && note.trim()) {\n' +
 '      slides[i].getNotesPage().getSpeakerNotesShape().getText().setText(note);\n' +
