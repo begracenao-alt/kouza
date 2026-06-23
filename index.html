@@ -499,8 +499,8 @@
     </div>
     <p class="hint" style="font-size:13px;margin:6px 0 14px">Google スライド や 過去 の 講座 を、 ここ に 集めて 管理 できます。</p>
 
-    <div class="card" style="margin-bottom:14px;background:var(--accent-soft);border:none;box-shadow:none">
-      <h3 style="margin:0 0 10px;font-size:14px;color:var(--ink)">＋ 新しく 加える</h3>
+    <div class="card" id="stgFormCard" style="margin-bottom:14px;background:var(--accent-soft);border:none;box-shadow:none">
+      <h3 id="stgFormTitle" style="margin:0 0 10px;font-size:14px;color:var(--ink)">＋ 新しく 加える</h3>
       <input class="input" id="stgTitle" placeholder="講座名（例：フロントセミナー）" style="margin-bottom:6px;font-size:13px">
       <input class="input" id="stgURL" placeholder="Google スライド の URL（任意）" style="margin-bottom:6px;font-size:13px">
       <div class="row-flex" style="gap:6px;margin-bottom:6px;align-items:center">
@@ -513,7 +513,8 @@
       </div>
       <textarea class="textarea" id="stgMemo" placeholder="メモ（誰向け／何分／値段 など 自由に）" style="min-height:60px;font-size:13px;margin-bottom:8px"></textarea>
       <div class="row-flex" style="gap:8px;align-items:center">
-        <button class="btn btn-primary btn-sm" onclick="addStorageItem()">＋ 加える</button>
+        <button class="btn btn-primary btn-sm" id="stgSaveBtn" onclick="saveStorageForm()">＋ 加える</button>
+        <button class="btn btn-sm" id="stgCancelBtn" onclick="cancelEdit()" style="display:none">キャンセル</button>
         <span class="hint" id="stgMsg" style="font-size:12px"></span>
       </div>
     </div>
@@ -1439,7 +1440,9 @@ function closeStorage(){
   document.getElementById("storageBg").style.display = "none";
 }
 
-function addStorageItem(){
+let stgEditingId = null;
+
+function saveStorageForm(){
   const t = document.getElementById("stgTitle").value.trim();
   if (!t) {
     const m = document.getElementById("stgMsg");
@@ -1448,31 +1451,51 @@ function addStorageItem(){
     setTimeout(()=>{ m.textContent=""; }, 2500);
     return;
   }
+  const url = document.getElementById("stgURL").value.trim();
+  const status = document.getElementById("stgStatus").value;
+  const memo = document.getElementById("stgMemo").value;
   const items = stgLoad();
-  items.push({
-    id: stgId(),
-    title: t,
-    url: document.getElementById("stgURL").value.trim(),
-    status: document.getElementById("stgStatus").value,
-    memo: document.getElementById("stgMemo").value,
-    createdAt: items.length ? Math.max(...items.map(i=>i.createdAt||0)) + 1 : 1,
-    updatedAt: items.length ? Math.max(...items.map(i=>i.createdAt||0)) + 1 : 1
-  });
-  stgSave(items);
+
+  if (stgEditingId) {
+    const it = items.find(i => i.id === stgEditingId);
+    if (it) {
+      it.title = t; it.url = url; it.status = status; it.memo = memo;
+      it.updatedAt = (it.updatedAt||0) + 1;
+      stgSave(items);
+    }
+    const msg = document.getElementById("stgMsg");
+    msg.textContent = "保存しました ✨";
+    msg.style.color = "var(--ok)";
+    setTimeout(()=>{ msg.textContent=""; }, 2000);
+    cancelEdit();
+  } else {
+    items.push({
+      id: stgId(),
+      title: t, url: url, status: status, memo: memo,
+      createdAt: items.length ? Math.max(...items.map(i=>i.createdAt||0)) + 1 : 1,
+      updatedAt: items.length ? Math.max(...items.map(i=>i.createdAt||0)) + 1 : 1
+    });
+    stgSave(items);
+    clearStorageForm();
+    const msg = document.getElementById("stgMsg");
+    msg.textContent = "加えました ✨";
+    msg.style.color = "var(--ok)";
+    setTimeout(()=>{ msg.textContent=""; }, 2000);
+  }
+  renderStorage();
+}
+
+function clearStorageForm(){
   document.getElementById("stgTitle").value = "";
   document.getElementById("stgURL").value = "";
   document.getElementById("stgMemo").value = "";
   document.getElementById("stgStatus").value = "draft";
-  const m = document.getElementById("stgMsg");
-  m.textContent = "加えました ✨";
-  m.style.color = "var(--ok)";
-  setTimeout(()=>{ m.textContent=""; }, 2000);
-  renderStorage();
 }
 
 function deleteStorageItem(id){
   if (!confirm("この 講座 を 保管庫 から 削除 しますか？")) return;
   stgSave(stgLoad().filter(i => i.id !== id));
+  if (stgEditingId === id) cancelEdit();
   renderStorage();
 }
 
@@ -1480,22 +1503,25 @@ function editStorageItem(id){
   const items = stgLoad();
   const it = items.find(i => i.id === id);
   if (!it) return;
-  const t = prompt("講座名", it.title);
-  if (t === null) return;
-  const u = prompt("URL（空でも OK）", it.url || "");
-  if (u === null) return;
-  const sLabel = prompt("ステータス（1=作りかけ ／ 2=完成 ／ 3=公開済み）",
-    it.status==="done"?"2":it.status==="public"?"3":"1");
-  if (sLabel === null) return;
-  const m = prompt("メモ", it.memo || "");
-  if (m === null) return;
-  it.title = t.trim() || it.title;
-  it.url = u.trim();
-  it.status = sLabel.trim()==="2"?"done":sLabel.trim()==="3"?"public":"draft";
-  it.memo = m;
-  it.updatedAt = (it.updatedAt||0) + 1;
-  stgSave(items);
-  renderStorage();
+  stgEditingId = id;
+  document.getElementById("stgTitle").value = it.title || "";
+  document.getElementById("stgURL").value = it.url || "";
+  document.getElementById("stgStatus").value = it.status || "draft";
+  document.getElementById("stgMemo").value = it.memo || "";
+  document.getElementById("stgFormTitle").textContent = "✎ 編集中：" + (it.title || "");
+  document.getElementById("stgFormCard").style.background = "linear-gradient(135deg,#fff8ee,#fdf0d6)";
+  document.getElementById("stgSaveBtn").textContent = "💾 上書き保存";
+  document.getElementById("stgCancelBtn").style.display = "inline-block";
+  document.querySelector("#storageBg .modal").scrollTo({top:0, behavior:"smooth"});
+}
+
+function cancelEdit(){
+  stgEditingId = null;
+  clearStorageForm();
+  document.getElementById("stgFormTitle").textContent = "＋ 新しく 加える";
+  document.getElementById("stgFormCard").style.background = "var(--accent-soft)";
+  document.getElementById("stgSaveBtn").textContent = "＋ 加える";
+  document.getElementById("stgCancelBtn").style.display = "none";
 }
 
 function renderStorage(){
