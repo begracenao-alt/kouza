@@ -1057,24 +1057,34 @@ function renderNoteOnlyCode(c){
 }
 
 function renderFullSlideCode(c){
+  // プレビュー（buildSlides）と同じ並び：表紙 → 各章の見出し → 各レッスン
+  const timeOnly = /^(所要時間|目安|時間|尺|長さ|時間目安)?\s*[:：]?\s*(約|およそ)?\s*\d+\s*[〜~\-‐]?\s*\d*\s*分(間)?$/;
+  const sd = x => String(x||"").replace(/[（(]\s*(約|およそ)?\s*\d+\s*[〜~\-‐]?\s*\d*\s*分(間)?\s*[）)]/g,"").replace(/\b\d{1,2}:\d{2}(?::\d{2})?\b/g,"").replace(/\s{2,}/g," ").trim();
   const slidesData = [];
-  c.sections.forEach(s => {
-    s.lessons.forEach(l => {
-      const title = (l.title || "").trim();
+  // 表紙
+  slidesData.push({ kind: "cover", title: (c.title || "（無題の講座）"), sub: (c.goal || ""), body: "", note: "" });
+  c.sections.forEach((s, si) => {
+    // 章の見出し
+    slidesData.push({ kind: "divider", title: (s.title || ""), sub: "第" + (si+1) + "章", body: "", note: "" });
+    s.lessons.forEach((l, li) => {
+      const title = sd(l.title);
       const lines = (l.slides || "")
         .split(/\n+/)
         .map(x => x.replace(/^[・\-\*\s]+/, "").trim())
+        .filter(Boolean)
+        .filter(x => !timeOnly.test(x))
+        .map(sd)
         .filter(Boolean);
       const body = lines.length ? lines.map(x => "・" + x).join("\n") : "";
       const note = buildLessonNoteText(l);
-      slidesData.push({title: title, body: body, note: note});
+      slidesData.push({ kind: "content", title: title, sub: "", body: body, note: note });
     });
   });
   const code =
 '/**\n' +
 ' * 講座ビルダー → Google スライド 一括作成\n' +
 ' * 講座：' + (c.title || "（無題）") + '\n' +
-' * 作成 スライド 数：' + slidesData.length + '\n' +
+' * 作成 スライド 数：' + slidesData.length + '（表紙・各章の見出し も 含みます）\n' +
 ' *\n' +
 ' * 使い方：💾 保存（Cmd+S）→ 関数「全スライドを投入」を選ぶ → ▶ 実行\n' +
 ' * ⚠ 既存 の スライド の 中身 は 置き換わります\n' +
@@ -1085,19 +1095,26 @@ function renderFullSlideCode(c){
 '  const presentation = SlidesApp.getActivePresentation();\n' +
 '  const original = presentation.getSlides().slice();\n' +
 '\n' +
-'  // 新しい スライド を 追加（タイトル＋本文 レイアウト）\n' +
-'  for (let i = 0; i < SLIDES.length; i++) {\n' +
-'    const slide = presentation.appendSlide(SlidesApp.PredefinedLayout.TITLE_AND_BODY);\n' +
-'    const data = SLIDES[i];\n' +
+'  // どの レイアウト でも 文字 を 入れられる ように 探して 入れる\n' +
+'  function put_(slide, types, text) {\n' +
+'    if (!text) return;\n' +
+'    for (var t = 0; t < types.length; t++) {\n' +
+'      var ph = slide.getPlaceholder(types[t]);\n' +
+'      if (ph) { ph.asShape().getText().setText(text); return; }\n' +
+'    }\n' +
+'  }\n' +
 '\n' +
-'    const titlePh = slide.getPlaceholder(SlidesApp.PlaceholderType.TITLE);\n' +
-'    if (titlePh && data.title) {\n' +
-'      titlePh.asShape().getText().setText(data.title);\n' +
-'    }\n' +
-'    const bodyPh = slide.getPlaceholder(SlidesApp.PlaceholderType.BODY);\n' +
-'    if (bodyPh && data.body) {\n' +
-'      bodyPh.asShape().getText().setText(data.body);\n' +
-'    }\n' +
+'  for (let i = 0; i < SLIDES.length; i++) {\n' +
+'    const data = SLIDES[i];\n' +
+'    let layout;\n' +
+'    if (data.kind === "cover") { layout = SlidesApp.PredefinedLayout.TITLE; }\n' +
+'    else if (data.kind === "divider") { layout = SlidesApp.PredefinedLayout.SECTION_HEADER; }\n' +
+'    else { layout = SlidesApp.PredefinedLayout.TITLE_AND_BODY; }\n' +
+'    const slide = presentation.appendSlide(layout);\n' +
+'\n' +
+'    put_(slide, [SlidesApp.PlaceholderType.CENTERED_TITLE, SlidesApp.PlaceholderType.TITLE], data.title);\n' +
+'    put_(slide, [SlidesApp.PlaceholderType.SUBTITLE], data.sub);\n' +
+'    put_(slide, [SlidesApp.PlaceholderType.BODY], data.body);\n' +
 '\n' +
 '    if (data.note) {\n' +
 '      slide.getNotesPage().getSpeakerNotesShape().getText().setText(data.note);\n' +
